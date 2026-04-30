@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Tienda N-1</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* Variables de diseño */
+    :root {
+      --naranja:       #F97316;
+      --naranja-deep:  #EA580C;
+      --naranja-glow:  rgba(249,115,22,0.18);
+      --naranja-pale:  #FFF7ED;
+      --gris-900:      #111827;
+      --gris-700:      #374151;
+      --gris-500:      #6B7280;
+      --gris-300:      #D1D5DB;
+      --gris-100:      #F3F4F6;
+      --blanco:        #FFFFFF;
+      --grad-header:   linear-gradient(135deg, #1C1917 0%, #292524 60%, #3B2F28 100%);
+      --grad-card:     linear-gradient(160deg, #FFFFFF 0%, #F9FAFB 100%);
+      --grad-total:    linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+      --grad-btn:      linear-gradient(135deg, #F97316 0%, #C2410C 100%);
+      --shadow-card:   0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+      --shadow-btn:    0 8px 20px rgba(249,115,22,0.35);
+      --radius:        16px;
+      --radius-sm:     10px;
+      --font-display:  'DM Serif Display', serif;
+      --font-body:     'DM Sans', sans-serif;
+    }
+
+    /* Reset y base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--gris-100);
+      color: var(--gris-900);
+      min-height: 100vh;
+    }
+
+    /* Cabecera principal con degradado oscuro */
+    .header {
+      background: var(--grad-header);
+      padding: clamp(28px, 6vw, 48px) clamp(20px, 5vw, 40px) clamp(36px, 8vw, 64px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decoracion geometrica del header */
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: var(--naranja-glow);
+      filter: blur(40px);
+      pointer-events: none;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -30px; left: 20%;
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      background: rgba(249,115,22,0.08);
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--naranja-glow);
+      border: 1px solid rgba(249,115,22,0.3);
+      border-radius: 99px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--naranja);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .header-badge::before { content: '●'; font-size: 8px; }
+
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 8vw, 52px);
+      color: var(--blanco);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .header h1 span {
+      color: var(--naranja);
+    }
+
+    .header p {
+      margin-top: 8px;
+      font-size: clamp(13px, 3.5vw, 15px);
+      color: #A8A29E;
+      font-weight: 300;
+    }
+
+    /* Contenedor principal centrado */
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: clamp(0px, 2vw, 20px);
+      transform: translateY(-28px);
+    }
+
+    /* Tarjeta del formulario */
+    .card {
+      background: var(--grad-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(255,255,255,0.9);
+      overflow: hidden;
+      animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--gris-100);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header h2 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--gris-500);
+    }
+
+    .fecha-chip {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--naranja-deep);
+      background: var(--naranja-pale);
+      border-radius: 99px;
+      padding: 4px 12px;
+    }
+
+    /* Cuerpo del formulario */
+    .card-body { padding: 20px 24px; }
+
+    /* Campo fecha */
+    .field-fecha {
+      margin-bottom: 20px;
+    }
+
+    .field-fecha label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gris-500);
+      margin-bottom: 8px;
+    }
+
+    .field-fecha input[type="date"] {
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--gris-300);
+      background: var(--blanco);
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--gris-900);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .field-fecha input[type="date"]:focus {
+      border-color: var(--naranja);
+      box-shadow: 0 0 0 3px var(--naranja-glow);
+    }
+
+    /* Grid de campos monetarios */
+    .fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    /* Campo individual monetario */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gris-500);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .field label .icon {
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--gris-300);
+      background: var(--blanco);
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--gris-900);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .field input::placeholder { color: var(--gris-300); font-weight: 400; }
+
+    .field input:focus {
+      border-color: var(--naranja);
+      box-shadow: 0 0 0 3px var(--naranja-glow);
+      background: var(--naranja-pale);
+    }
+
+    /* Estado de error en campo vacio */
+    .field input.error {
+      border-color: #EF4444;
+      background: #FEF2F2;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-4px); }
+      75%      { transform: translateX(4px); }
+    }
+
+    /* Bloque del total calculado */
+    .total-block {
+      background: var(--grad-total);
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-btn);
+    }
+
+    .total-block .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .total-block .amount {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 6vw, 32px);
+      color: var(--blanco);
+      letter-spacing: -0.02em;
+    }
+
+    /* Boton principal de guardado */
+    .btn-guardar {
+      width: 100%;
+      padding: 17px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--grad-btn);
+      color: var(--blanco);
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: var(--shadow-btn);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-guardar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background 0.2s;
+    }
+
+    .btn-guardar:hover  { opacity: 0.92; box-shadow: 0 12px 28px rgba(249,115,22,0.45); }
+    .btn-guardar:active { transform: scale(0.98); }
+
+    /* Estado de carga del boton */
+    .btn-guardar.loading { pointer-events: none; opacity: 0.75; }
+
+    /* Feedback toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--gris-900);
+      color: var(--blanco);
+      padding: 13px 24px;
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      z-index: 999;
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.35s;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success { background: #166534; }
+    .toast.error   { background: #991B1B; }
+
+    /* Seccion historial */
+    .historial {
+      margin-top: 16px;
+      animation: slideUp 0.45s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    .historial-header {
+      padding: 0 4px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .historial-header h3 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gris-500);
+    }
+
+    .historial-count {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--naranja);
+      background: var(--naranja-pale);
+      border-radius: 99px;
+      padding: 3px 10px;
+    }
+
+    /* Tabla del historial */
+    .table-wrap {
+      background: var(--blanco);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(255,255,255,0.9);
+      overflow: hidden;
+    }
+
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    table {
+      width: 100%;
+      min-width: 480px;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: var(--gris-900);
+    }
+
+    thead th {
+      padding: 12px 14px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      text-align: right;
+    }
+
+    thead th:first-child { text-align: left; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--gris-100);
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover      { background: var(--naranja-pale); }
+
+    tbody td {
+      padding: 13px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gris-700);
+      text-align: right;
+    }
+
+    tbody td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: var(--gris-900);
+      font-size: 12px;
+    }
+
+    /* Columna total destacada en naranja */
+    tbody td:last-child {
+      font-weight: 700;
+      color: var(--naranja-deep);
+    }
+
+    /* Fila vacia cuando no hay datos */
+    .empty-row td {
+      text-align: center !important;
+      color: var(--gris-300) !important;
+      font-weight: 400 !important;
+      font-size: 13px !important;
+      padding: 32px !important;
+    }
+
+    /* Pie de pagina */
+    .footer {
+      text-align: center;
+      padding: clamp(20px, 4vw, 32px);
+      font-size: 11px;
+      color: #9CA3AF;
+      font-weight: 400;
+    }
+
+    /* Responsive: pantalla ancha el grid pasa a 2 cols con mas espacio */
+    @media (min-width: 480px) {
+      .container { padding: 0 20px; }
+      .card-body  { padding: 24px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Cabecera principal con branding -->
+<header class="header">
+  <div class="header-badge">En vivo</div>
+  <h1>Tienda <span>N-1</span></h1>
+  <p>Registro diario de ventas</p>
+</header>
+
+<!-- Contenedor centrado con card del formulario -->
+<div class="container">
+
+  <!-- Tarjeta principal del formulario -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Nueva venta</h2>
+      <span class="fecha-chip" id="fecha-hoy"></span>
+    </div>
+
+    <div class="card-body">
+
+      <!-- Campo de fecha -->
+      <div class="field-fecha">
+        <label>Fecha</label>
+        <input type="date" id="input-fecha" />
+      </div>
+
+      <!-- Grid de campos monetarios -->
+      <div class="fields-grid">
+        <div class="field">
+          <label><span class="icon">💙</span> Nequi</label>
+          <input type="tel" id="input-nequi" inputmode="numeric" placeholder="$0" />
+        </div>
+        <div class="field">
+          <label><span class="icon">💜</span> Daviplata</label>
+          <input type="tel" id="input-daviplata" inputmode="numeric" placeholder="$0" />
+        </div>
+        <div class="field">
+          <label><span class="icon">💵</span> Efectivo</label>
+          <input type="tel" id="input-efectivo" inputmode="numeric" placeholder="$0" />
+        </div>
+        <div class="field">
+          <label><span class="icon">📋</span> Fiado</label>
+          <input type="tel" id="input-fiado" inputmode="numeric" placeholder="$0" />
+        </div>
+      </div>
+
+      <!-- Total calculado automaticamente -->
+      <div class="total-block">
+        <div class="label">Total del día</div>
+        <div class="amount" id="display-total">$0</div>
+      </div>
+
+      <!-- Boton de guardado -->
+      <button class="btn-guardar" id="btn-guardar" onclick="guardarVenta()">
+        Guardar venta
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Seccion historial de ventas -->
+  <div class="historial">
+    <div class="historial-header">
+      <h3>Historial</h3>
+      <span class="historial-count" id="historial-count">
+        {{ ventas|length }} registro{{ 's' if ventas|length != 1 else '' }}
+      </span>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Nequi</th>
+              <th>DaviPlata</th>
+              <th>Efectivo</th>
+              <th>Fiado</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body">
+            {% if ventas %}
+              {% for v in ventas %}
+              <tr>
+                <td>{{ v.fecha }}</td>
+                <td>{{ v.nequi }}</td>
+                <td>{{ v.daviplata }}</td>
+                <td>{{ v.efectivo }}</td>
+                <td>{{ v.fiado }}</td>
+                <td>{{ v.total }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row">
+                <td colspan="6">Aún no hay ventas registradas hoy</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">Tienda N-1 &nbsp;·&nbsp; Sistema de registro v1.0 &nbsp;·&nbsp; Nicolas Becerra</footer>
+</div>
+
+<!-- Toast de feedback -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // Formato de pesos colombianos
+  function formatearCOP(valor) {
+    return "$" + Number(valor).toLocaleString("es-CO");
+  }
+
+  // Limpia puntos, comas y simbolo de pesos para convertir el texto a numero
+  function parseNum(texto) {
+    return parseInt(String(texto).replace(/\./g, "").replace(/,/g, "").replace(/\$/g, "").trim()) || 0;
+  }
+
+  // Coloca la fecha de hoy en el input y en el chip del header
+  function setFechaHoy() {
+    const hoy   = new Date();
+    const yyyy  = hoy.getFullYear();
+    const mm    = String(hoy.getMonth() + 1).padStart(2, "0");
+    const dd    = String(hoy.getDate()).padStart(2, "0");
+    const iso   = `${yyyy}-${mm}-${dd}`;
+    document.getElementById("input-fecha").value = iso;
+    document.getElementById("fecha-hoy").textContent = `${dd}/${mm}/${yyyy}`;
+  }
+
+  // Suma los cuatro campos de dinero y muestra el total formateado en pantalla
+  function actualizarTotal() {
+    const n = parseNum(document.getElementById("input-nequi").value);
+    const d = parseNum(document.getElementById("input-daviplata").value);
+    const e = parseNum(document.getElementById("input-efectivo").value);
+    const f = parseNum(document.getElementById("input-fiado").value);
+    const total = n + d + e + f;
+    document.getElementById("display-total").textContent = formatearCOP(total);
+  }
+
+  // Toma lo que escribio el usuario y lo convierte automaticamente a formato monetario
+  function formatearEntrada(input) {
+    const texto = input.value.replace(/\./g, "").replace(/,/g, "").replace(/\$/g, "");
+    if (texto === "") { actualizarTotal(); return; }
+    const num = parseInt(texto);
+    if (!isNaN(num)) {
+      input.value = formatearCOP(num);
+    }
+    input.classList.remove("error");
+    actualizarTotal();
+  }
+
+  // Muestra un toast de feedback al usuario
+  function mostrarToast(msg, tipo = "success") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className   = `toast ${tipo} show`;
+    setTimeout(() => { t.className = "toast"; }, 3000);
+  }
+
+  // Validacion visual de campos vacios
+  function validarCampos() {
+    const ids    = ["input-nequi", "input-daviplata", "input-efectivo", "input-fiado"];
+    let   valido = true;
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        el.classList.add("error");
+        valido = false;
+      }
+    });
+    return valido;
+  }
+
+  // Agrega fila nueva al historial en pantalla sin recargar la pagina
+  function agregarFilaTabla(v) {
+    const tbody = document.getElementById("tabla-body");
+    const vacia = tbody.querySelector(".empty-row");
+    if (vacia) vacia.remove();
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${v.fecha}</td>
+      <td>${v.nequi}</td>
+      <td>${v.daviplata}</td>
+      <td>${v.efectivo}</td>
+      <td>${v.fiado}</td>
+      <td>${v.total}</td>
+    `;
+    tbody.prepend(tr);
+
+    const count = tbody.querySelectorAll("tr").length;
+    document.getElementById("historial-count").textContent =
+      `${count} registro${count !== 1 ? "s" : ""}`;
+  }
+
+  // Limpieza del formulario despues de enviar al excel
+  function limpiarFormulario() {
+    ["input-nequi","input-daviplata","input-efectivo","input-fiado"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("display-total").textContent = "$0";
+    setFechaHoy();
+  }
+
+  // Guarda los datos del formulario enviandolos al backend Flask
+  async function guardarVenta() {
+    if (!validarCampos()) {
+      mostrarToast("Completa todos los campos", "error");
+      return;
+    }
+
+    const btn  = document.getElementById("btn-guardar");
+    btn.classList.add("loading");
+    btn.textContent = "Guardando...";
+
+    const payload = {
+      fecha:     document.getElementById("input-fecha").value,
+      nequi:     parseNum(document.getElementById("input-nequi").value),
+      daviplata: parseNum(document.getElementById("input-daviplata").value),
+      efectivo:  parseNum(document.getElementById("input-efectivo").value),
+      fiado:     parseNum(document.getElementById("input-fiado").value),
+    };
+
+    try {
+      const res  = await fetch("/guardar", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        agregarFilaTabla(data);
+        limpiarFormulario();
+        mostrarToast("✓ Venta guardada correctamente", "success");
+      } else {
+        mostrarToast("Error: " + data.error, "error");
+      }
+    } catch (err) {
+      mostrarToast("Error de conexión", "error");
+    } finally {
+      btn.classList.remove("loading");
+      btn.textContent = "Guardar venta";
+    }
+  }
+
+  // Eventos de formateo automatico en cada campo monetario
+  document.querySelectorAll("#input-nequi, #input-daviplata, #input-efectivo, #input-fiado")
+    .forEach(el => el.addEventListener("input", () => formatearEntrada(el)));
+
+  // Inicializacion al cargar la pagina
+  setFechaHoy();
+</script>
+</body>
+</html>
