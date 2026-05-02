@@ -120,6 +120,9 @@ def obtener_datos_inicio():
                 "dia": dias_semana[dia.weekday()],
                 "fecha": str(dia),
                 "total": row.get("total", 0) if row else 0,
+                "nequi": row.get("nequi", 0) if row else 0,
+                "daviplata": row.get("daviplata", 0) if row else 0,
+                "efectivo": row.get("efectivo", 0) if row else 0,
                 "es_hoy": dia == hoy,
             })
 

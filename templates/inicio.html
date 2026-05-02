@@ -6,7 +6,7 @@
 
   /* Card principal hero con degradado oscuro */
   .hero-card {
-    background: linear-gradient(145deg, #431407 0%, #ff774e 50%, #9A3412 100%);
+    background: linear-gradient(145deg, #431407 0%, #7C2D12 50%, #9A3412 100%);;
     border-radius: var(--radius);
     padding: 28px 24px 24px;
     margin-bottom: 16px;
@@ -409,10 +409,24 @@
       const hit  = barRects.find(b => mx >= b.x && mx <= b.x + b.w && my >= b.y - 10 && my <= b.y + b.h + 10);
 
       if (hit) {
-        tooltip.textContent  = hit.data.total > 0 ? `$${Number(hit.data.total).toLocaleString("es-CO")}` : "Sin venta";
-        tooltip.style.left   = hit.cx + "px";
-        tooltip.style.top    = (hit.y - 36) + "px";
+        // Actualiza el tooltip
+        tooltip.textContent = hit.data.total > 0 ? `$${Number(hit.data.total).toLocaleString("es-CO")}` : "Sin venta";
+        tooltip.style.left  = hit.cx + "px";
+        tooltip.style.top   = (hit.y - 36) + "px";
         tooltip.classList.add("visible");
+
+        // Actualiza la seccion hero con los datos del dia seleccionado
+        const d = hit.data;
+        document.querySelector(".hero-label").textContent =
+          d.es_hoy ? "Ventas hoy" : `Ventas del ${d.fecha}`;
+        document.querySelector(".hero-amount").textContent =
+          "$" + Number(d.total).toLocaleString("es-CO");
+        document.querySelectorAll(".breakdown-value")[0].textContent =
+          "$" + Number(d.nequi || 0).toLocaleString("es-CO");
+        document.querySelectorAll(".breakdown-value")[1].textContent =
+          "$" + Number(d.daviplata || 0).toLocaleString("es-CO");
+        document.querySelectorAll(".breakdown-value")[2].textContent =
+          "$" + Number(d.efectivo || 0).toLocaleString("es-CO");
       } else {
         tooltip.classList.remove("visible");
       }
