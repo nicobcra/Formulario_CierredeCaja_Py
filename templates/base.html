@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Tienda Dilan</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* Variables globales de diseño */
+    :root {
+      --naranja:        #F97316;
+      --naranja-deep:   #EA580C;
+      --naranja-glow:   rgba(249,115,22,0.18);
+      --naranja-pale:   #FFF7ED;
+      --gris-900:       #111827;
+      --gris-700:       #374151;
+      --gris-500:       #6B7280;
+      --gris-300:       #D1D5DB;
+      --gris-100:       #F3F4F6;
+      --gris-50:        #F9FAFB;
+      --blanco:         #FFFFFF;
+      --sidebar-w:      240px;
+      --bottomnav-h:    64px;
+      --grad-header:    linear-gradient(135deg, #1C1917 0%, #292524 60%, #3B2F28 100%);
+      --grad-btn:       linear-gradient(135deg, #F97316 0%, #C2410C 100%);
+      --shadow-card:    0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+      --shadow-btn:     0 8px 20px rgba(249,115,22,0.35);
+      --radius:         16px;
+      --radius-sm:      10px;
+      --font-display:   'DM Serif Display', serif;
+      --font-body:      'DM Sans', sans-serif;
+    }
+
+    /* Reset base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--gris-100);
+      color: var(--gris-900);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar de navegacion desktop y tablet */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--grad-header);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 100;
+      padding: 0 0 24px;
+    }
+
+    /* Logo y nombre en la sidebar */
+    .sidebar-brand {
+      padding: 28px 24px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-brand .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--naranja-glow);
+      border: 1px solid rgba(249,115,22,0.3);
+      border-radius: 99px;
+      padding: 3px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--naranja);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .sidebar-brand .brand-badge::before { content: '●'; font-size: 7px; }
+
+    .sidebar-brand h1 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      color: var(--blanco);
+      line-height: 1.1;
+    }
+
+    .sidebar-brand h1 span { color: var(--naranja); }
+
+    .sidebar-brand p {
+      font-size: 11px;
+      color: #A8A29E;
+      margin-top: 4px;
+      font-weight: 300;
+    }
+
+    /* Items de navegacion en la sidebar */
+    .sidebar-nav {
+      flex: 1;
+      padding: 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: #A8A29E;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--blanco);
+    }
+
+    /* Estado activo del item de navegacion */
+    .nav-item.active {
+      background: var(--naranja-glow);
+      color: var(--naranja);
+      border: 1px solid rgba(249,115,22,0.25);
+    }
+
+    .nav-item .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+    .nav-item .nav-label { flex: 1; }
+
+    /* Badge de proximamente en items no listos */
+    .nav-item .nav-soon {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: rgba(255,255,255,0.08);
+      color: #78716C;
+      border-radius: 99px;
+      padding: 2px 7px;
+      text-transform: uppercase;
+    }
+
+    /* Version en el footer de la sidebar */
+    .sidebar-footer {
+      padding: 0 24px;
+      font-size: 10px;
+      color: #57534E;
+    }
+
+    /* Contenido principal desplazado por el ancho de la sidebar */
+    .main-content {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Bottom navigation para movil */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--bottomnav-h);
+      background: var(--gris-900);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      z-index: 100;
+      padding: 0 8px;
+      align-items: center;
+      justify-content: space-around;
+    }
+
+    /* Item del bottom nav en movil */
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      text-decoration: none;
+      color: #78716C;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      transition: color 0.2s;
+      min-width: 56px;
+    }
+
+    .bottom-nav-item .bn-icon { font-size: 20px; line-height: 1; }
+
+    /* Estado activo del bottom nav */
+    .bottom-nav-item.active { color: var(--naranja); }
+
+    /* Boton central destacado del bottom nav - Ventas */
+    .bottom-nav-item.center-btn {
+      background: var(--naranja);
+      color: var(--blanco);
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-top: -18px;
+      box-shadow: var(--shadow-btn);
+    }
+
+    .bottom-nav-item.center-btn.active { background: var(--naranja-deep); }
+
+    /* Espaciado del contenido para no quedar debajo del bottom nav en movil */
+    .page-padding-bottom { padding-bottom: 0; }
+
+    /* Responsive: en movil se oculta sidebar y aparece bottom nav */
+    @media (max-width: 768px) {
+      .sidebar       { display: none; }
+      .main-content  { margin-left: 0; }
+      .bottom-nav    { display: flex; }
+      .page-padding-bottom { padding-bottom: calc(var(--bottomnav-h) + 12px); }
+    }
+
+    /* Responsive: en tablet se reduce la sidebar */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      :root { --sidebar-w: 200px; }
+    }
+
+    /* Estilos globales reutilizables en todas las paginas */
+    .page-header {
+      background: var(--grad-header);
+      padding: clamp(24px, 5vw, 40px) clamp(20px, 4vw, 40px) clamp(32px, 6vw, 52px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: var(--naranja-glow);
+      filter: blur(40px);
+      pointer-events: none;
+    }
+
+    .page-header .page-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--naranja-glow);
+      border: 1px solid rgba(249,115,22,0.3);
+      border-radius: 99px;
+      padding: 3px 11px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--naranja);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .page-header h2 {
+      font-family: var(--font-display);
+      font-size: clamp(26px, 5vw, 38px);
+      color: var(--blanco);
+      line-height: 1.1;
+    }
+
+    .page-header h2 span { color: var(--naranja); }
+
+    .page-header p {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #A8A29E;
+      font-weight: 300;
+    }
+
+    .page-body {
+      padding: clamp(16px, 3vw, 32px);
+      flex: 1;
+    }
+
+    /* Tarjeta generica reutilizable */
+    .card {
+      background: var(--blanco);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(255,255,255,0.9);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--gris-100);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header h3 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--gris-500);
+    }
+
+    .card-body { padding: 20px 24px; }
+
+    /* Boton primario naranja reutilizable */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--grad-btn);
+      color: var(--blanco);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: var(--shadow-btn);
+      text-decoration: none;
+    }
+
+    .btn-primary:hover  { opacity: 0.9; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary.full   { width: 100%; }
+
+    /* Boton secundario sin fondo */
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--gris-300);
+      background: transparent;
+      color: var(--gris-700);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-secondary:hover { border-color: var(--naranja); color: var(--naranja); }
+
+    /* Estilos de inputs globales */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gris-500);
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--gris-300);
+      background: var(--blanco);
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--gris-900);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--naranja);
+      box-shadow: 0 0 0 3px var(--naranja-glow);
+    }
+
+    .field input.error { border-color: #EF4444; background: #FEF2F2; }
+
+    /* Toast de feedback global */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--gris-900);
+      color: var(--blanco);
+      padding: 12px 24px;
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      z-index: 999;
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.35s;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .toast.show  { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { background: #166534; }
+    .toast.error   { background: #991B1B; }
+
+    @media (max-width: 768px) {
+      .toast { bottom: calc(var(--bottomnav-h) + 12px); }
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- Sidebar de navegacion para desktop y tablet -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-badge">En vivo</div>
+    <h1>Tienda <span>Dilan</span></h1>
+    <p>Sistema de gestión</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="/" class="nav-item {% if modulo == 'inicio' %}active{% endif %}">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Inicio</span>
+    </a>
+    <a href="/ventas" class="nav-item {% if modulo == 'ventas' %}active{% endif %}">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Ventas</span>
+    </a>
+    <a href="/pedidos" class="nav-item {% if modulo == 'pedidos' %}active{% endif %}">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">Pedidos</span>
+    </a>
+    <a href="/inventario" class="nav-item {% if modulo == 'inventario' %}active{% endif %}">
+      <span class="nav-icon">🗃️</span>
+      <span class="nav-label">Inventario</span>
+      <span class="nav-soon">Pronto</span>
+    </a>
+    <a href="/analisis" class="nav-item {% if modulo == 'analisis' %}active{% endif %}">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Análisis</span>
+      <span class="nav-soon">Pronto</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    v2.0 · Nicolas Becerra
+  </div>
+</aside>
+
+<!-- Contenido principal de cada pagina -->
+<main class="main-content page-padding-bottom">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Bottom navigation para movil -->
+<nav class="bottom-nav">
+  <a href="/" class="bottom-nav-item {% if modulo == 'inicio' %}active{% endif %}">
+    <span class="bn-icon">🏠</span>
+    <span>Inicio</span>
+  </a>
+  <a href="/pedidos" class="bottom-nav-item {% if modulo == 'pedidos' %}active{% endif %}">
+    <span class="bn-icon">📦</span>
+    <span>Pedidos</span>
+  </a>
+  <a href="/ventas" class="bottom-nav-item center-btn {% if modulo == 'ventas' %}active{% endif %}">
+    <span class="bn-icon">💰</span>
+    <span>Ventas</span>
+  </a>
+  <a href="/inventario" class="bottom-nav-item {% if modulo == 'inventario' %}active{% endif %}">
+    <span class="bn-icon">🗃️</span>
+    <span>Inventario</span>
+  </a>
+  <a href="/analisis" class="bottom-nav-item {% if modulo == 'analisis' %}active{% endif %}">
+    <span class="bn-icon">📊</span>
+    <span>Análisis</span>
+  </a>
+</nav>
+
+<!-- Toast global de feedback -->
+<div class="toast" id="toast"></div>
+
+<!-- Script global del toast reutilizable en todas las paginas -->
+<script>
+  function mostrarToast(msg, tipo = "success") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className   = `toast ${tipo} show`;
+    setTimeout(() => { t.className = "toast"; }, 3000);
+  }
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
