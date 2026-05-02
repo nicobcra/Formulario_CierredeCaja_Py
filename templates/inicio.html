@@ -1,10 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends "base.html" %}
+ 
+{% block content %}
+ 
+<!-- Cabecera de la pagina de inicio -->
+<div class="page-header">
+  <div class="page-badge">Hoy</div>
+  <h2>Bienvenida, <span>Mamá</span></h2>
+  <p>Resumen del día — Tienda Dilan</p>
+</div>
+ 
+<!-- Cuerpo de la pagina de inicio -->
+<div class="page-body">
+ 
+  <!-- Tarjetas de acceso rapido a los modulos principales -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+ 
+    <!-- Acceso rapido a ventas -->
+    <a href="/ventas" style="text-decoration: none;">
+      <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: transform 0.2s; border-left: 4px solid var(--naranja);">
+        <div style="font-size: 32px;">💰</div>
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--gris-900);">Registrar Venta</div>
+          <div style="font-size: 12px; color: var(--gris-500); margin-top: 2px;">Ingresar ventas del día</div>
+        </div>
+      </div>
+    </a>
+ 
+    <!-- Acceso rapido a pedidos -->
+    <a href="/pedidos" style="text-decoration: none;">
+      <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: transform 0.2s; border-left: 4px solid #3B82F6;">
+        <div style="font-size: 32px;">📦</div>
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--gris-900);">Registrar Pedido</div>
+          <div style="font-size: 12px; color: var(--gris-500); margin-top: 2px;">Mercancía que llegó hoy</div>
+        </div>
+      </div>
+    </a>
+ 
+    <!-- Acceso rapido a inventario - proximamente -->
+    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; opacity: 0.5; border-left: 4px solid var(--gris-300);">
+      <div style="font-size: 32px;">🗃️</div>
+      <div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--gris-900);">Inventario</div>
+        <div style="font-size: 12px; color: var(--gris-500); margin-top: 2px;">Próximamente</div>
+      </div>
+    </div>
+ 
+    <!-- Acceso rapido a analisis - proximamente -->
+    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; opacity: 0.5; border-left: 4px solid var(--gris-300);">
+      <div style="font-size: 32px;">📊</div>
+      <div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--gris-900);">Análisis</div>
+        <div style="font-size: 12px; color: var(--gris-500); margin-top: 2px;">Próximamente</div>
+      </div>
+    </div>
+ 
+  </div>
+ 
+  <!-- Mensaje motivacional del dia -->
+  <div class="card">
+    <div class="card-body" style="text-align: center; padding: 32px;">
+      <div style="font-size: 40px; margin-bottom: 12px;">🏪</div>
+      <div style="font-family: var(--font-display); font-size: 20px; color: var(--gris-900); margin-bottom: 8px;">
+        Tienda Dilan
+      </div>
+      <div style="font-size: 13px; color: var(--gris-500);">
+        Selecciona una opción del menú para comenzar
+      </div>
+    </div>
+  </div>
+ 
+</div>
+ 
+{% endblock %}
+ 
