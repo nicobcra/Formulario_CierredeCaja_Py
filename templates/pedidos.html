@@ -1,10 +1,934 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block head %}
+<style>
+  /* Estilos especificos del modulo de pedidos */
+
+  /* Tabs de navegacion entre pedidos y proveedores */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--gris-100);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gris-500);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--blanco);
+    color: var(--gris-900);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  /* Paneles de cada tab */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Card del formulario de pedidos */
+  .pedido-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(255,255,255,0.9);
+    overflow: hidden;
+    margin-bottom: 16px;
+    animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .pedido-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gris-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pedido-card-header h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+  }
+
+  .pedido-card-body { padding: 20px; }
+
+  /* Grid de dos columnas para campos del pedido */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Grid de una columna para campos anchos */
+  .grid-1 { margin-bottom: 16px; }
+
+  /* Seccion de items del pedido */
+  .items-section {
+    border: 1.5px dashed var(--gris-300);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .items-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .items-section-header span {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+  }
+
+  /* Lista de items agregados al pedido */
+  .items-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  /* Item individual en la lista */
+  .item-row {
+    background: var(--gris-50);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid var(--gris-100);
+    animation: slideUp 0.25s ease both;
+  }
+
+  .item-row-info { flex: 1; }
+
+  .item-row-nombre {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gris-900);
+    margin-bottom: 4px;
+  }
+
+  .item-row-detalle {
+    font-size: 11px;
+    color: var(--gris-500);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .item-row-detalle span {
+    background: var(--gris-100);
+    border-radius: 99px;
+    padding: 2px 8px;
+  }
+
+  .item-row-subtotal {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--naranja-deep);
+    white-space: nowrap;
+  }
+
+  /* Boton para eliminar un item */
+  .btn-remove-item {
+    background: none;
+    border: none;
+    color: var(--gris-300);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+
+  .btn-remove-item:hover { color: #EF4444; }
+
+  /* Formulario para agregar un item nuevo */
+  .add-item-form {
+    background: var(--naranja-pale);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    border: 1px solid rgba(249,115,22,0.15);
+  }
+
+  .add-item-form .grid-2 { margin-bottom: 10px; }
+  .add-item-form .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Campo readonly con fondo destacado para precio final calculado */
+  .campo-calculado input {
+    background: var(--blanco) !important;
+    font-weight: 600 !important;
+    color: var(--naranja-deep) !important;
+    border-color: rgba(249,115,22,0.3) !important;
+  }
+
+  /* Bloque del total del pedido */
+  .total-pedido-block {
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-btn);
+  }
+
+  .total-pedido-block .tp-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+  }
+
+  .total-pedido-block .tp-amount {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--blanco);
+  }
+
+  /* Selector de medio de pago */
+  .pago-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .pago-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--gris-300);
+    background: var(--blanco);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gris-500);
+  }
+
+  .pago-option .pago-icon { font-size: 22px; }
+
+  .pago-option.selected {
+    border-color: var(--naranja);
+    background: var(--naranja-pale);
+    color: var(--naranja-deep);
+  }
+
+  /* Historial de pedidos del dia */
+  .historial-pedidos { margin-top: 8px; }
+
+  .pedido-hist-item {
+    background: var(--blanco);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--gris-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .pedido-hist-info { flex: 1; }
+
+  .pedido-hist-proveedor {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gris-900);
+    margin-bottom: 3px;
+  }
+
+  .pedido-hist-meta {
+    font-size: 11px;
+    color: var(--gris-500);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pedido-hist-total {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--naranja-deep);
+    white-space: nowrap;
+  }
+
+  /* Badge del medio de pago en historial */
+  .pago-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .pago-badge.nequi     { background: #EDE9FE; color: #6D28D9; }
+  .pago-badge.daviplata { background: #EDE9FE; color: #7C3AED; }
+  .pago-badge.efectivo  { background: #DCFCE7; color: #166534; }
+
+  /* Card de proveedor en la lista */
+  .proveedor-card {
+    background: var(--blanco);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--gris-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    animation: slideUp 0.3s ease both;
+  }
+
+  .proveedor-info { flex: 1; }
+
+  .proveedor-nombre {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gris-900);
+    margin-bottom: 2px;
+  }
+
+  .proveedor-meta {
+    font-size: 11px;
+    color: var(--gris-500);
+  }
+
+  /* Badge de categoria del proveedor */
+  .cat-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .cat-badge.normal   { background: var(--naranja-pale); color: var(--naranja-deep); }
+  .cat-badge.cerveza  { background: #FEF9C3; color: #854D0E; }
+
+  /* Formulario de nuevo proveedor */
+  .nuevo-proveedor-form {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(255,255,255,0.9);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  /* Responsive: en movil grid de 2 pasa a 1 columna */
+  @media (max-width: 480px) {
+    .page-body  { padding: 12px; }
+    .grid-2     { grid-template-columns: 1fr; }
+    .pago-grid  { grid-template-columns: repeat(3, 1fr); }
+    .add-item-form .grid-3 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Cabecera del modulo de pedidos -->
+<div class="page-header">
+  <div class="page-badge">Mercancía</div>
+  <h2>Pedidos y <span>Proveedores</span></h2>
+  <p>Registra los pedidos que llegaron hoy</p>
+</div>
+
+<!-- Cuerpo del modulo de pedidos -->
+<div class="page-body">
+
+  <!-- Tabs de navegacion entre pedidos y proveedores -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="cambiarTab('pedidos')">📦 Pedidos</button>
+    <button class="tab-btn" onclick="cambiarTab('proveedores')">🏭 Proveedores</button>
+  </div>
+
+  <!-- Panel de pedidos -->
+  <div class="tab-panel active" id="panel-pedidos">
+
+    <!-- Formulario para registrar un pedido nuevo -->
+    <div class="pedido-card">
+      <div class="pedido-card-header">
+        <h3>Nuevo pedido</h3>
+        <span style="font-size:11px; color:var(--gris-500);" id="fecha-chip-pedido"></span>
+      </div>
+      <div class="pedido-card-body">
+
+        <!-- Fila de fecha y proveedor -->
+        <div class="grid-2">
+          <div class="field">
+            <label>Fecha</label>
+            <input type="date" id="ped-fecha" />
+          </div>
+          <div class="field">
+            <label>Proveedor</label>
+            <select id="ped-proveedor">
+              <option value="">Selecciona...</option>
+              {% for p in proveedores %}
+              <option value="{{ p.id }}">{{ p.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Seccion de items del pedido -->
+        <div class="items-section">
+          <div class="items-section-header">
+            <span>Productos del pedido</span>
+            <button class="btn-primary" onclick="mostrarFormItem()" style="padding: 7px 14px; font-size:12px;">
+              + Agregar producto
+            </button>
+          </div>
+
+          <!-- Lista de items ya agregados -->
+          <div class="items-lista" id="items-lista">
+            <div id="items-vacio" style="text-align:center; padding:20px; color:var(--gris-300); font-size:13px;">
+              Aún no has agregado productos
+            </div>
+          </div>
+
+          <!-- Formulario para agregar un item -->
+          <div class="add-item-form" id="add-item-form" style="display:none;">
+            <div class="grid-2">
+              <div class="field" style="grid-column: span 2;">
+                <label>Nombre del producto</label>
+                <input type="text" id="item-nombre" placeholder="Ej: Kumis Alpina 200ml" />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label>Cantidad</label>
+                <input type="number" id="item-cantidad" placeholder="0" min="1" inputmode="numeric" />
+              </div>
+              <div class="field">
+                <label>Precio compra (sin IVA)</label>
+                <input type="tel" id="item-precio-compra" inputmode="numeric" placeholder="$0"
+                  oninput="calcularPrecioFinal()" />
+              </div>
+            </div>
+            <div class="add-item-form .grid-3" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+              <div class="field">
+                <label>IVA %</label>
+                <select id="item-iva" onchange="calcularPrecioFinal()">
+                  <option value="0">0%</option>
+                  <option value="5">5%</option>
+                  <option value="19" selected>19%</option>
+                </select>
+              </div>
+              <div class="field campo-calculado">
+                <label>Precio + IVA</label>
+                <input type="tel" id="item-precio-final" readonly placeholder="$0" />
+              </div>
+              <div class="field">
+                <label>Precio venta</label>
+                <input type="tel" id="item-precio-venta" inputmode="numeric" placeholder="$0" />
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-primary" onclick="agregarItem()" style="flex:1;">Agregar</button>
+              <button class="btn-secondary" onclick="ocultarFormItem()">Cancelar</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Total calculado del pedido -->
+        <div class="total-pedido-block">
+          <div class="tp-label">Total del pedido</div>
+          <div class="tp-amount" id="total-pedido-display">$0</div>
+        </div>
+
+        <!-- Selector de medio de pago -->
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--gris-500); margin-bottom:10px;">
+          ¿De dónde se paga?
+        </div>
+        <div class="pago-grid" id="pago-grid">
+          <button class="pago-option" onclick="seleccionarPago('nequi', this)">
+            <span class="pago-icon">💙</span>
+            <span>Nequi</span>
+          </button>
+          <button class="pago-option" onclick="seleccionarPago('daviplata', this)">
+            <span class="pago-icon">💜</span>
+            <span>Daviplata</span>
+          </button>
+          <button class="pago-option" onclick="seleccionarPago('efectivo', this)">
+            <span class="pago-icon">💵</span>
+            <span>Efectivo</span>
+          </button>
+        </div>
+
+        <!-- Campo opcional de notas del pedido -->
+        <div class="field grid-1">
+          <label>Notas (opcional)</label>
+          <textarea id="ped-notas" rows="2" placeholder="Ej: Faltaron 3 unidades de leche..."
+            style="resize:none; font-family:var(--font-body); font-size:14px;"></textarea>
+        </div>
+
+        <!-- Boton guardar pedido -->
+        <button class="btn-primary full" id="btn-guardar-pedido" onclick="guardarPedido()">
+          Guardar pedido
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Historial de pedidos registrados -->
+    <div>
+      <div style="display:flex; align-items:center; justify-content:space-between; padding: 0 4px 12px;">
+        <span style="font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gris-500);">
+          Pedidos registrados
+        </span>
+        <span style="font-size:11px; font-weight:600; color:var(--naranja); background:var(--naranja-pale); border-radius:99px; padding:3px 10px;"
+          id="pedidos-count">
+          {{ pedidos|length }} pedido{{ 's' if pedidos|length != 1 else '' }}
+        </span>
+      </div>
+
+      <!-- Lista de pedidos del historial -->
+      <div id="historial-pedidos">
+        {% if pedidos %}
+          {% for p in pedidos %}
+          <div class="pedido-hist-item">
+            <div class="pedido-hist-info">
+              <div class="pedido-hist-proveedor">{{ p.proveedor }}</div>
+              <div class="pedido-hist-meta">
+                <span>{{ p.fecha }}</span>
+                <span class="pago-badge {{ p.pagado_con }}">{{ p.pagado_con }}</span>
+                {% if p.notas %}<span>{{ p.notas }}</span>{% endif %}
+              </div>
+            </div>
+            <div class="pedido-hist-total">{{ p.total }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align:center; padding:32px; color:var(--gris-300); font-size:13px;">
+            Aún no hay pedidos registrados
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Panel de proveedores -->
+  <div class="tab-panel" id="panel-proveedores">
+
+    <!-- Formulario para agregar proveedor nuevo -->
+    <div class="nuevo-proveedor-form">
+      <div class="pedido-card-header">
+        <h3>Nuevo proveedor</h3>
+      </div>
+      <div class="pedido-card-body">
+        <div class="grid-2">
+          <div class="field">
+            <label>Nombre</label>
+            <input type="text" id="prov-nombre" placeholder="Ej: Alpina" />
+          </div>
+          <div class="field">
+            <label>Teléfono (opcional)</label>
+            <input type="tel" id="prov-telefono" placeholder="300 000 0000" />
+          </div>
+        </div>
+        <div class="field grid-1" style="margin-bottom:16px;">
+          <label>Categoría</label>
+          <select id="prov-categoria">
+            <option value="normal">Normal</option>
+            <option value="cerveza">Cerveza</option>
+          </select>
+        </div>
+        <button class="btn-primary full" onclick="guardarProveedor()">
+          Guardar proveedor
+        </button>
+      </div>
+    </div>
+
+    <!-- Lista de proveedores registrados -->
+    <div>
+      <div style="padding: 0 4px 12px;">
+        <span style="font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gris-500);">
+          Proveedores registrados
+        </span>
+      </div>
+      <div id="lista-proveedores">
+        {% if proveedores %}
+          {% for p in proveedores %}
+          <div class="proveedor-card">
+            <div class="proveedor-info">
+              <div class="proveedor-nombre">{{ p.nombre }}</div>
+              <div class="proveedor-meta">{{ p.telefono or 'Sin teléfono' }}</div>
+            </div>
+            <span class="cat-badge {{ p.categoria }}">{{ p.categoria }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align:center; padding:32px; color:var(--gris-300); font-size:13px;">
+            Aún no hay proveedores registrados
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Estado del formulario de pedido en memoria
+  let itemsPedido  = [];
+  let pagoSelecto  = "";
+  let totalPedido  = 0;
+
+  // Formato de pesos colombianos
+  function formatearCOP(valor) {
+    return "$" + Number(valor).toLocaleString("es-CO");
+  }
+
+  // Limpia puntos, comas y simbolo de pesos para convertir el texto a numero
+  function parseNum(texto) {
+    return parseInt(String(texto).replace(/\./g, "").replace(/,/g, "").replace(/\$/g, "").trim()) || 0;
+  }
+
+  // Toma lo que escribio el usuario y lo convierte automaticamente a formato monetario
+  function formatearEntrada(input) {
+    const texto = input.value.replace(/\./g, "").replace(/,/g, "").replace(/\$/g, "");
+    if (texto === "") return;
+    const num = parseInt(texto);
+    if (!isNaN(num)) input.value = formatearCOP(num);
+  }
+
+  // Cambia entre el tab de pedidos y el tab de proveedores
+  function cambiarTab(tab) {
+    document.querySelectorAll(".tab-btn").forEach((b, i) => {
+      b.classList.toggle("active", (i === 0 && tab === "pedidos") || (i === 1 && tab === "proveedores"));
+    });
+    document.getElementById("panel-pedidos").classList.toggle("active", tab === "pedidos");
+    document.getElementById("panel-proveedores").classList.toggle("active", tab === "proveedores");
+  }
+
+  // Muestra el formulario para agregar un item al pedido
+  function mostrarFormItem() {
+    document.getElementById("add-item-form").style.display = "block";
+    document.getElementById("item-nombre").focus();
+  }
+
+  // Oculta y limpia el formulario de agregar item
+  function ocultarFormItem() {
+    document.getElementById("add-item-form").style.display = "none";
+    ["item-nombre","item-cantidad","item-precio-compra","item-precio-final","item-precio-venta"]
+      .forEach(id => document.getElementById(id).value = "");
+    document.getElementById("item-iva").value = "19";
+  }
+
+  // Calcula el precio final con IVA en tiempo real
+  function calcularPrecioFinal() {
+    const precioCompra = parseNum(document.getElementById("item-precio-compra").value);
+    const iva          = parseInt(document.getElementById("item-iva").value) || 0;
+    const precioFinal  = Math.round(precioCompra * (1 + iva / 100));
+    document.getElementById("item-precio-final").value = precioFinal > 0 ? formatearCOP(precioFinal) : "";
+  }
+
+  // Actualiza el total del pedido sumando todos los items
+  function recalcularTotal() {
+    totalPedido = itemsPedido.reduce((acc, item) => acc + item.subtotal, 0);
+    document.getElementById("total-pedido-display").textContent = formatearCOP(totalPedido);
+  }
+
+  // Agrega un item a la lista del pedido en memoria y lo renderiza
+  function agregarItem() {
+    const nombre       = document.getElementById("item-nombre").value.trim();
+    const cantidad     = parseInt(document.getElementById("item-cantidad").value) || 0;
+    const precioCompra = parseNum(document.getElementById("item-precio-compra").value);
+    const iva          = parseInt(document.getElementById("item-iva").value) || 0;
+    const precioFinal  = parseNum(document.getElementById("item-precio-final").value);
+    const precioVenta  = parseNum(document.getElementById("item-precio-venta").value);
+
+    if (!nombre || cantidad <= 0 || precioCompra <= 0) {
+      mostrarToast("Completa nombre, cantidad y precio", "error");
+      return;
+    }
+
+    const subtotal = precioFinal * cantidad;
+    const item = { nombre, cantidad, precioCompra, iva, precioFinal, precioVenta, subtotal };
+    itemsPedido.push(item);
+
+    renderizarItems();
+    recalcularTotal();
+    ocultarFormItem();
+    mostrarToast("✓ Producto agregado", "success");
+  }
+
+  // Elimina un item de la lista por su indice
+  function eliminarItem(idx) {
+    itemsPedido.splice(idx, 1);
+    renderizarItems();
+    recalcularTotal();
+  }
+
+  // Dibuja todos los items actuales en la lista visible
+  function renderizarItems() {
+    const lista = document.getElementById("items-lista");
+    const vacio = document.getElementById("items-vacio");
+
+    if (itemsPedido.length === 0) {
+      lista.innerHTML = "";
+      lista.appendChild(vacio);
+      vacio.style.display = "block";
+      return;
+    }
+
+    vacio.style.display = "none";
+    lista.innerHTML = itemsPedido.map((item, idx) => `
+      <div class="item-row">
+        <div class="item-row-info">
+          <div class="item-row-nombre">${item.nombre}</div>
+          <div class="item-row-detalle">
+            <span>x${item.cantidad}</span>
+            <span>Compra: ${formatearCOP(item.precioFinal)}</span>
+            <span>IVA: ${item.iva}%</span>
+            ${item.precioVenta > 0 ? `<span>Venta: ${formatearCOP(item.precioVenta)}</span>` : ""}
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="item-row-subtotal">${formatearCOP(item.subtotal)}</div>
+          <button class="btn-remove-item" onclick="eliminarItem(${idx})">✕</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  // Marca el medio de pago seleccionado visualmente
+  function seleccionarPago(pago, el) {
+    document.querySelectorAll(".pago-option").forEach(b => b.classList.remove("selected"));
+    el.classList.add("selected");
+    pagoSelecto = pago;
+  }
+
+  // Limpiatodo el formulario del pedido despues de guardar
+
+  function limpiarFormularioPedido() {
+    itemsPedido  = [];
+    pagoSelecto  = "";
+    totalPedido  = 0;
+    document.getElementById("ped-proveedor").value = "";
+    document.getElementById("ped-notas").value     = "";
+    document.getElementById("total-pedido-display").textContent = "$0";
+    document.querySelectorAll(".pago-option").forEach(b => b.classList.remove("selected"));
+    renderizarItems();
+    setFechaHoy();
+  }
+
+  // Agrega un pedido al historial en pantalla sin recargar la pagina
+  function agregarPedidoHistorial(data) {
+    const contenedor = document.getElementById("historial-pedidos");
+    const vacio      = contenedor.querySelector("div[style*='text-align:center']");
+    if (vacio) vacio.remove();
+
+    const div = document.createElement("div");
+    div.className = "pedido-hist-item";
+    div.innerHTML = `
+      <div class="pedido-hist-info">
+        <div class="pedido-hist-proveedor">${data.proveedor_nombre}</div>
+        <div class="pedido-hist-meta">
+          <span>${data.fecha}</span>
+          <span class="pago-badge ${data.pagado_con}">${data.pagado_con}</span>
+        </div>
+      </div>
+      <div class="pedido-hist-total">${data.total}</div>
+    `;
+    contenedor.prepend(div);
+
+    const count = contenedor.querySelectorAll(".pedido-hist-item").length;
+    document.getElementById("pedidos-count").textContent =
+      `${count} pedido${count !== 1 ? "s" : ""}`;
+  }
+
+  // Guarda el pedido completo enviandolo al backend Flask
+  async function guardarPedido() {
+    const proveedorId = document.getElementById("ped-proveedor").value;
+    const fecha       = document.getElementById("ped-fecha").value;
+    const notas       = document.getElementById("ped-notas").value;
+
+    if (!proveedorId)        { mostrarToast("Selecciona un proveedor", "error"); return; }
+    if (itemsPedido.length === 0) { mostrarToast("Agrega al menos un producto", "error"); return; }
+    if (!pagoSelecto)        { mostrarToast("Selecciona el medio de pago", "error"); return; }
+
+    const btn    = document.getElementById("btn-guardar-pedido");
+    btn.disabled = true;
+    btn.textContent = "Guardando...";
+
+    const payload = {
+      fecha,
+      proveedor_id: parseInt(proveedorId),
+      pagado_con:   pagoSelecto,
+      notas,
+      items: itemsPedido.map(item => ({
+        producto_nombre:     item.nombre,
+        cantidad:            item.cantidad,
+        precio_compra:       item.precioCompra,
+        iva:                 item.iva,
+        precio_compra_final: item.precioFinal,
+        precio_venta:        item.precioVenta,
+        subtotal:            item.subtotal,
+      }))
+    };
+
+    try {
+      const res  = await fetch("/guardar-pedido", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        const provNombre = document.getElementById("ped-proveedor").selectedOptions[0].text;
+        agregarPedidoHistorial({ ...data, proveedor_nombre: provNombre, fecha, pagado_con: pagoSelecto });
+        limpiarFormularioPedido();
+        mostrarToast("✓ Pedido guardado correctamente", "success");
+      } else {
+        mostrarToast("Error: " + data.error, "error");
+      }
+    } catch {
+      mostrarToast("Error de conexión", "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Guardar pedido";
+    }
+  }
+
+  // Agrega el nuevo proveedor a la lista visible sin recargar la pagina
+  function agregarProveedorLista(prov) {
+    const lista = document.getElementById("lista-proveedores");
+    const vacio = lista.querySelector("div[style*='text-align:center']");
+    if (vacio) vacio.remove();
+
+    const div = document.createElement("div");
+    div.className = "proveedor-card";
+    div.innerHTML = `
+      <div class="proveedor-info">
+        <div class="proveedor-nombre">${prov.nombre}</div>
+        <div class="proveedor-meta">${prov.telefono || "Sin teléfono"}</div>
+      </div>
+      <span class="cat-badge ${prov.categoria}">${prov.categoria}</span>
+    `;
+    lista.prepend(div);
+
+    // Agregar el nuevo proveedor al select del formulario de pedido
+    const select  = document.getElementById("ped-proveedor");
+    const option  = document.createElement("option");
+    option.value  = prov.id;
+    option.text   = prov.nombre;
+    select.appendChild(option);
+  }
+
+  // Guarda un proveedor nuevo enviandolo al backend Flask
+  async function guardarProveedor() {
+    const nombre    = document.getElementById("prov-nombre").value.trim();
+    const telefono  = document.getElementById("prov-telefono").value.trim();
+    const categoria = document.getElementById("prov-categoria").value;
+
+    if (!nombre) { mostrarToast("Escribe el nombre del proveedor", "error"); return; }
+
+    const btn    = document.querySelector("#panel-proveedores .btn-primary");
+    btn.disabled = true;
+    btn.textContent = "Guardando...";
+
+    try {
+      const res  = await fetch("/guardar-proveedor", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ nombre, telefono, categoria })
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        agregarProveedorLista(data.proveedor);
+        document.getElementById("prov-nombre").value    = "";
+        document.getElementById("prov-telefono").value  = "";
+        mostrarToast("✓ Proveedor guardado", "success");
+      } else {
+        mostrarToast("Error: " + data.error, "error");
+      }
+    } catch {
+      mostrarToast("Error de conexión", "error");
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = "Guardar proveedor";
+    }
+  }
+
+  // Coloca la fecha de hoy en los inputs de fecha
+  function setFechaHoy() {
+    const hoy  = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm   = String(hoy.getMonth() + 1).padStart(2, "0");
+    const dd   = String(hoy.getDate()).padStart(2, "0");
+    const iso  = `${yyyy}-${mm}-${dd}`;
+    document.getElementById("ped-fecha").value          = iso;
+    document.getElementById("fecha-chip-pedido").textContent = `${dd}/${mm}/${yyyy}`;
+  }
+
+  // Formateo automatico en campos monetarios del item
+  document.getElementById("item-precio-compra").addEventListener("input", function() {
+    formatearEntrada(this);
+    calcularPrecioFinal();
+  });
+
+  document.getElementById("item-precio-venta").addEventListener("input", function() {
+    formatearEntrada(this);
+  });
+
+  // Inicializacion al cargar la pagina
+  setFechaHoy();
+</script>
+{% endblock %}
