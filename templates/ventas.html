@@ -88,13 +88,6 @@
     margin-bottom: 20px;
   }
 
-  /* 🔥 FIX SOLO MOVIL (sin tocar diseño) */
-  @media (max-width: 480px) {
-    .fields-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
   /* Campo monetario individual */
   .money-field { display: flex; flex-direction: column; gap: 7px; }
 
@@ -132,6 +125,7 @@
     background: var(--naranja-pale);
   }
 
+  /* Estado de error en campo vacio */
   .money-field input.error {
     border-color: #EF4444;
     background: #FEF2F2;
@@ -144,6 +138,7 @@
     75%      { transform: translateX(4px); }
   }
 
+  /* Bloque del total calculado */
   .total-block {
     background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
     border-radius: var(--radius-sm);
@@ -170,6 +165,7 @@
     letter-spacing: -0.02em;
   }
 
+  /* Seccion historial de ventas */
   .historial-section {
     margin-top: 16px;
     animation: slideUp 0.45s 0.1s cubic-bezier(0.22,1,0.36,1) both;
@@ -199,6 +195,7 @@
     padding: 3px 10px;
   }
 
+  /* Tabla del historial de ventas */
   .table-wrap {
     background: var(--blanco);
     border-radius: var(--radius);
@@ -248,8 +245,10 @@
     font-size: 12px;
   }
 
+  /* Columna total destacada en naranja */
   tbody td:last-child { font-weight: 700; color: var(--naranja-deep); }
 
+  /* Fila vacia cuando no hay datos */
   .empty-row td {
     text-align: center !important;
     color: var(--gris-300) !important;
@@ -258,4 +257,234 @@
     padding: 32px !important;
   }
 </style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Cabecera del modulo de ventas -->
+<div class="page-header">
+  <div class="page-badge">Registro diario</div>
+  <h2>Ventas <span>del día</span></h2>
+  <p>Ingresa las ventas de hoy</p>
+</div>
+
+<!-- Cuerpo del modulo de ventas -->
+<div class="page-body">
+  <div class="ventas-wrap">
+
+    <!-- Tarjeta del formulario de ventas -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <h3>Nueva venta</h3>
+        <span class="fecha-chip" id="fecha-hoy"></span>
+      </div>
+
+      <div class="form-card-body">
+
+        <!-- Campo de fecha -->
+        <div class="field-fecha">
+          <label class="field" style="font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--gris-500); margin-bottom:7px; display:block;">Fecha</label>
+          <input type="date" id="input-fecha" />
+        </div>
+
+        <!-- Grid de campos monetarios -->
+        <div class="fields-grid">
+          <div class="money-field">
+            <label><span>💙</span> Nequi</label>
+            <input type="tel" id="input-nequi" inputmode="numeric" placeholder="$0" />
+          </div>
+          <div class="money-field">
+            <label><span>💜</span> Daviplata</label>
+            <input type="tel" id="input-daviplata" inputmode="numeric" placeholder="$0" />
+          </div>
+          <div class="money-field">
+            <label><span>💵</span> Efectivo</label>
+            <input type="tel" id="input-efectivo" inputmode="numeric" placeholder="$0" />
+          </div>
+          <div class="money-field">
+            <label><span>📋</span> Fiado</label>
+            <input type="tel" id="input-fiado" inputmode="numeric" placeholder="$0" />
+          </div>
+        </div>
+
+        <!-- Total calculado automaticamente -->
+        <div class="total-block">
+          <div class="total-label">Total del día</div>
+          <div class="total-amount" id="display-total">$0</div>
+        </div>
+
+        <!-- Boton de guardado -->
+        <button class="btn-primary full" id="btn-guardar" onclick="guardarVenta()">
+          Guardar venta
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Seccion historial de ventas -->
+    <div class="historial-section">
+      <div class="historial-header">
+        <h3>Historial</h3>
+        <span class="historial-count" id="historial-count">
+          {{ ventas|length }} registro{{ 's' if ventas|length != 1 else '' }}
+        </span>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Nequi</th>
+                <th>DaviPlata</th>
+                <th>Efectivo</th>
+                <th>Fiado</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-body">
+              {% if ventas %}
+                {% for v in ventas %}
+                <tr>
+                  <td>{{ v.fecha }}</td>
+                  <td>{{ v.nequi }}</td>
+                  <td>{{ v.daviplata }}</td>
+                  <td>{{ v.efectivo }}</td>
+                  <td>{{ v.fiado }}</td>
+                  <td>{{ v.total }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr class="empty-row">
+                  <td colspan="6">Aún no hay ventas registradas</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Formato de pesos colombianos
+  function formatearCOP(valor) {
+    return "$" + Number(valor).toLocaleString("es-CO");
+  }
+
+  // Limpia puntos, comas y simbolo de pesos para convertir el texto a numero
+  function parseNum(texto) {
+    return parseInt(String(texto).replace(/\./g, "").replace(/,/g, "").replace(/\$/g, "").trim()) || 0;
+  }
+
+  // Coloca la fecha de hoy en el input y en el chip del header
+  function setFechaHoy() {
+    const hoy  = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm   = String(hoy.getMonth() + 1).padStart(2, "0");
+    const dd   = String(hoy.getDate()).padStart(2, "0");
+    document.getElementById("input-fecha").value = `${yyyy}-${mm}-${dd}`;
+    document.getElementById("fecha-hoy").textContent = `${dd}/${mm}/${yyyy}`;
+  }
+
+  // Suma los cuatro campos de dinero y muestra el total formateado en pantalla
+  function actualizarTotal() {
+    const n = parseNum(document.getElementById("input-nequi").value);
+    const d = parseNum(document.getElementById("input-daviplata").value);
+    const e = parseNum(document.getElementById("input-efectivo").value);
+    const f = parseNum(document.getElementById("input-fiado").value);
+    document.getElementById("display-total").textContent = formatearCOP(n + d + e + f);
+  }
+
+  // Toma lo que escribio el usuario y lo convierte automaticamente a formato monetario
+  function formatearEntrada(input) {
+    const texto = input.value.replace(/\./g, "").replace(/,/g, "").replace(/\$/g, "");
+    if (texto === "") { actualizarTotal(); return; }
+    const num = parseInt(texto);
+    if (!isNaN(num)) input.value = formatearCOP(num);
+    input.classList.remove("error");
+    actualizarTotal();
+  }
+
+  // Validacion visual de campos vacios
+  function validarCampos() {
+    const ids  = ["input-nequi", "input-daviplata", "input-efectivo", "input-fiado"];
+    let valido = true;
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) { el.classList.add("error"); valido = false; }
+    });
+    return valido;
+  }
+
+  // Agrega fila nueva al historial en pantalla sin recargar la pagina
+  function agregarFilaTabla(v) {
+    const tbody = document.getElementById("tabla-body");
+    const vacia = tbody.querySelector(".empty-row");
+    if (vacia) vacia.remove();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${v.fecha}</td><td>${v.nequi}</td><td>${v.daviplata}</td>
+      <td>${v.efectivo}</td><td>${v.fiado}</td><td>${v.total}</td>
+    `;
+    tbody.prepend(tr);
+    const count = tbody.querySelectorAll("tr").length;
+    document.getElementById("historial-count").textContent =
+      `${count} registro${count !== 1 ? "s" : ""}`;
+  }
+
+  // Limpieza del formulario despues de enviar al servidor
+  function limpiarFormulario() {
+    ["input-nequi","input-daviplata","input-efectivo","input-fiado"]
+      .forEach(id => document.getElementById(id).value = "");
+    document.getElementById("display-total").textContent = "$0";
+    setFechaHoy();
+  }
+
+  // Guarda los datos del formulario enviandolos al backend Flask
+  async function guardarVenta() {
+    if (!validarCampos()) { mostrarToast("Completa todos los campos", "error"); return; }
+    const btn = document.getElementById("btn-guardar");
+    btn.disabled = true;
+    btn.textContent = "Guardando...";
+    const payload = {
+      fecha:     document.getElementById("input-fecha").value,
+      nequi:     parseNum(document.getElementById("input-nequi").value),
+      daviplata: parseNum(document.getElementById("input-daviplata").value),
+      efectivo:  parseNum(document.getElementById("input-efectivo").value),
+      fiado:     parseNum(document.getElementById("input-fiado").value),
+    };
+    try {
+      const res  = await fetch("/guardar-venta", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.ok) {
+        agregarFilaTabla(data);
+        limpiarFormulario();
+        mostrarToast("✓ Venta guardada correctamente", "success");
+      } else {
+        mostrarToast("Error: " + data.error, "error");
+      }
+    } catch {
+      mostrarToast("Error de conexión", "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Guardar venta";
+    }
+  }
+
+  // Eventos de formateo automatico en cada campo monetario
+  document.querySelectorAll("#input-nequi,#input-daviplata,#input-efectivo,#input-fiado")
+    .forEach(el => el.addEventListener("input", () => formatearEntrada(el)));
+
+  // Inicializacion al cargar la pagina
+  setFechaHoy();
+</script>
 {% endblock %}
