@@ -6,7 +6,7 @@
 
   /* Card principal hero con degradado oscuro */
   .hero-card {
-    background: linear-gradient(145deg, #1C1917 0%, #292524 50%, #3D2B1F 100%);
+    background: linear-gradient(145deg, #431407 0%, #ff774e 50%, #9A3412 100%);
     border-radius: var(--radius);
     padding: 28px 24px 24px;
     margin-bottom: 16px;
@@ -55,7 +55,7 @@
 
   /* Monto total de ventas hoy */
   .hero-amount {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: clamp(36px, 9vw, 52px);
     color: var(--blanco);
     line-height: 1;
@@ -124,7 +124,8 @@
   }
 
   .chart-total {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
+    font-weight: 700;
     font-size: clamp(22px, 5vw, 28px);
     color: var(--gris-900);
     letter-spacing: -0.02em;
@@ -383,7 +384,7 @@
       const radius = 6;
 
       // Naranja para hoy, gris claro para los demas dias
-      ctx.fillStyle = d.es_hoy ? "#F97316" : "#E5E7EB";
+      ctx.fillStyle = d.es_hoy ? "#4ADE80" : "#FB923C";
 
       // Barra con esquinas redondeadas en la parte superior
       ctx.beginPath();
