@@ -1,40 +1,49 @@
 {% extends "base.html" %}
- 
+
 {% block head %}
 <style>
   /* Estilos especificos del dashboard de inicio */
 
-  /* Card principal hero con degradado oscuro */
+  /* Layout de dos columnas en desktop */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .dashboard-col-left  { display: flex; flex-direction: column; gap: 16px; }
+  .dashboard-col-right { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Card principal hero estilo imagen de referencia */
   .hero-card {
-    background: linear-gradient(145deg, #1C1917 0%, #292524 50%, #3D2B1F 100%);
+    background: linear-gradient(160deg, #14532D 0%, #166534 55%, #15803D 100%);
     border-radius: var(--radius);
     padding: 28px 24px 24px;
-    margin-bottom: 16px;
     position: relative;
     overflow: hidden;
     animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
   }
 
-  /* Decoracion de brillo naranja en el hero */
+  /* Circulo decorativo superior derecha */
   .hero-card::before {
     content: '';
     position: absolute;
-    top: -40px; right: -40px;
-    width: 180px; height: 180px;
+    top: -50px; right: -50px;
+    width: 200px; height: 200px;
     border-radius: 50%;
-    background: var(--naranja-glow);
-    filter: blur(50px);
+    background: rgba(255,255,255,0.06);
     pointer-events: none;
   }
 
+  /* Circulo decorativo inferior izquierda */
   .hero-card::after {
     content: '';
     position: absolute;
-    bottom: -30px; left: 10%;
-    width: 120px; height: 120px;
+    bottom: -40px; left: -20px;
+    width: 160px; height: 160px;
     border-radius: 50%;
-    background: rgba(249,115,22,0.06);
-    filter: blur(30px);
+    background: rgba(255,255,255,0.04);
     pointer-events: none;
   }
 
@@ -43,67 +52,93 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* Etiqueta de ventas hoy en el hero */
+  /* Etiqueta superior del hero */
   .hero-label {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--blanco);
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 10px;
+  }
+
+  /* Monto principal con signo de pesos pequeno */
+  .hero-amount {
+    display: flex;
+    align-items: flex-start;
+    gap: 3px;
+    line-height: 1;
     margin-bottom: 8px;
   }
 
-  /* Monto total de ventas hoy */
-  .hero-amount {
+  .hero-amount .peso-sign {
     font-family: var(--font-body);
-    font-size: clamp(36px, 9vw, 52px);
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+    margin-top: 6px;
+  }
+
+  .hero-amount .peso-num {
+    font-family: var(--font-body);
+    font-size: clamp(34px, 8vw, 48px);
+    font-weight: 700;
     color: var(--blanco);
-    line-height: 1;
-    margin-bottom: 6px;
     letter-spacing: -0.02em;
   }
 
-  /* Separador entre total y desglose */
-  .hero-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.08);
-    margin: 20px 0 16px;
+  /* Badge de estado debajo del monto */
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 20px;
   }
 
-  /* Grid del desglose por metodo de pago */
+  /* Separador entre monto y desglose */
+  .hero-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin-bottom: 16px;
+  }
+
+  /* Grid de desglose por metodo de pago */
   .hero-breakdown {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 8px;
   }
 
-  .breakdown-item { display: flex; flex-direction: column; gap: 4px; }
+  .breakdown-item { display: flex; flex-direction: column; gap: 5px; }
 
   .breakdown-label {
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--blanco);
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    color: rgba(255,255,255,0.45);
   }
 
   .breakdown-value {
-    font-size: clamp(13px, 3.5vw, 16px);
+    font-family: var(--font-body);
+    font-size: clamp(13px, 2.5vw, 16px);
     font-weight: 700;
     color: var(--blanco);
   }
 
   /* Card de la grafica semanal */
   .chart-card {
-    background: var(--blanco);
+    background: linear-gradient(160deg, #FFFFFF 0%, #FFF7ED 100%);
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
-    border: 1px solid rgba(255,255,255,0.9);
-    padding: 20px 20px 16px;
-    margin-bottom: 16px;
+    border: 1px solid rgba(249,115,22,0.08);
+    padding: 20px 20px 14px;
     animation: slideUp 0.45s 0.08s cubic-bezier(0.22,1,0.36,1) both;
   }
 
@@ -111,7 +146,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .chart-title {
@@ -126,12 +161,12 @@
   .chart-total {
     font-family: var(--font-body);
     font-weight: 700;
-    font-size: clamp(22px, 5vw, 28px);
+    font-size: clamp(20px, 4vw, 26px);
     color: var(--gris-900);
     letter-spacing: -0.02em;
   }
 
-  /* Badge de semana */
+  /* Badge semana */
   .chart-badge {
     font-size: 11px;
     font-weight: 700;
@@ -139,9 +174,10 @@
     border-radius: 99px;
     background: var(--naranja-pale);
     color: var(--naranja-deep);
+    white-space: nowrap;
   }
 
-  /* Tooltip que aparece al tocar una barra */
+  /* Tooltip al tocar una barra */
   .chart-tooltip {
     background: var(--gris-900);
     color: var(--blanco);
@@ -152,22 +188,31 @@
     position: absolute;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.15s;
     white-space: nowrap;
     z-index: 10;
     transform: translateX(-50%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
 
   .chart-tooltip.visible { opacity: 1; }
 
-  /* Contenedor del canvas de la grafica */
+  /* Contenedor del canvas */
   .chart-wrap {
     position: relative;
-    margin-top: 16px;
-    height: 140px;
+    margin-top: 14px;
+    height: 130px;
   }
 
-  /* Etiquetas de dias debajo de la grafica */
+  /* Canvas ocupatodo el contenedor */
+  .chart-wrap canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Etiquetas de dias */
   .chart-labels {
     display: flex;
     justify-content: space-around;
@@ -184,24 +229,22 @@
 
   .chart-day.hoy { color: var(--naranja); font-weight: 700; }
 
-  /* Grid de accesos rapidos a modulos */
+  /* Grid de accesos rapidos */
   .quick-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    margin-bottom: 16px;
     animation: slideUp 0.45s 0.15s cubic-bezier(0.22,1,0.36,1) both;
   }
 
-  /* Tarjeta de acceso rapido */
   .quick-card {
     background: var(--blanco);
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-card);
-    padding: 18px 16px;
+    padding: 16px 14px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     text-decoration: none;
     border: 1px solid rgba(255,255,255,0.9);
     transition: transform 0.18s, box-shadow 0.18s;
@@ -212,10 +255,10 @@
   .quick-card:active { transform: scale(0.97); }
 
   .quick-icon {
-    width: 42px; height: 42px;
-    border-radius: 12px;
+    width: 40px; height: 40px;
+    border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
     flex-shrink: 0;
   }
 
@@ -223,32 +266,39 @@
   .quick-icon.azul    { background: #EFF6FF; }
   .quick-icon.gris    { background: var(--gris-100); }
 
-  .quick-info { flex: 1; }
+  .quick-info { flex: 1; min-width: 0; }
 
   .quick-title {
     font-size: 13px;
     font-weight: 700;
     color: var(--gris-900);
-    margin-bottom: 2px;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .quick-sub { font-size: 11px; color: var(--gris-500); }
 
-  /* Tarjeta deshabilitada de modulos proximos */
   .quick-card.disabled { opacity: 0.4; pointer-events: none; }
 
-  /* Responsive movil */
-  @media (max-width: 480px) {
-    .page-body       { padding: 12px; }
-    .hero-breakdown  { gap: 8px; }
+  /* Responsive movil: una sola columna */
+  @media (max-width: 768px) {
+    .page-body      { padding: 12px; }
+    .dashboard-grid { grid-template-columns: 1fr; }
     .breakdown-value { font-size: 13px; }
+  }
+
+  /* Desktop: limitar ancho del hero en pantallas grandes */
+  @media (min-width: 1200px) {
+    .dashboard-grid { grid-template-columns: 420px 1fr; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Cabecera del dashboard de inicio -->
+<!-- Cabecera del dashboard -->
 <div class="page-header">
   <div class="page-badge">Hoy</div>
   <h2>Hola, <span>Lida</span> 👋</h2>
@@ -257,194 +307,265 @@
 
 <!-- Cuerpo del dashboard -->
 <div class="page-body">
+  <div class="dashboard-grid">
 
-  <!-- Card hero con total de ventas hoy y desglose por metodo de pago -->
-  <div class="hero-card">
-    <div class="hero-label">Ventas hoy</div>
-    <div class="hero-amount">${{ "{:,.0f}".format(datos.total_hoy).replace(",", ".") }}</div>
-    <div style="font-size:13px; color:#78716C; margin-top:4px;">pesos colombianos</div>
+    <!-- Columna izquierda: hero y accesos rapidos -->
+    <div class="dashboard-col-left">
 
-    <div class="hero-divider"></div>
+      <!-- Card hero con ventas de hoy -->
+      <div class="hero-card">
+        <div class="hero-label">Ventas hoy</div>
 
-    <!-- Desglose Nequi Daviplata Efectivo -->
-    <div class="hero-breakdown">
-      <div class="breakdown-item">
-        <div class="breakdown-label">💙 Nequi</div>
-        <div class="breakdown-value">${{ "{:,.0f}".format(datos.nequi_hoy).replace(",", ".") }}</div>
-      </div>
-      <div class="breakdown-item">
-        <div class="breakdown-label">💜 Daviplata</div>
-        <div class="breakdown-value">${{ "{:,.0f}".format(datos.daviplata_hoy).replace(",", ".") }}</div>
-      </div>
-      <div class="breakdown-item">
-        <div class="breakdown-label">💵 Efectivo</div>
-        <div class="breakdown-value">${{ "{:,.0f}".format(datos.efectivo_hoy).replace(",", ".") }}</div>
-      </div>
-    </div>
-  </div>
+        <!-- Monto principal con signo pequeno -->
+        <div class="hero-amount">
+          <span class="peso-sign">$</span>
+          <span class="peso-num" id="hero-num">{{ "{:,.0f}".format(datos.total_hoy).replace(",", ".") }}</span>
+        </div>
 
-  <!-- Card de grafica de ventas de la ultima semana -->
-  <div class="chart-card">
-    <div class="chart-header">
-      <div>
-        <div class="chart-title">Ventas última semana</div>
-        <div class="chart-total" id="chart-total-semana">
-          ${{ "{:,.0f}".format(datos.semana | sum(attribute='total')).replace(",", ".") }}
+        <!-- Badge de estado -->
+        <div class="hero-badge">↑ registro del día</div>
+
+        <div class="hero-divider"></div>
+
+        <!-- Desglose por metodo de pago -->
+        <div class="hero-breakdown">
+          <div class="breakdown-item">
+            <div class="breakdown-label">💙 Nequi</div>
+            <div class="breakdown-value" id="bd-nequi">${{ "{:,.0f}".format(datos.nequi_hoy).replace(",", ".") }}</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-label">💜 Daviplata</div>
+            <div class="breakdown-value" id="bd-daviplata">${{ "{:,.0f}".format(datos.daviplata_hoy).replace(",", ".") }}</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-label">💵 Efectivo</div>
+            <div class="breakdown-value" id="bd-efectivo">${{ "{:,.0f}".format(datos.efectivo_hoy).replace(",", ".") }}</div>
+          </div>
         </div>
       </div>
-      <div class="chart-badge">semana</div>
-    </div>
 
-    <!-- Canvas donde se dibuja la grafica de barras interactiva -->
-    <div class="chart-wrap">
-      <div class="chart-tooltip" id="chart-tooltip"></div>
-      <canvas id="chart-canvas" style="width:100%; height:100%;"></canvas>
-    </div>
-
-    <!-- Etiquetas de dias de la semana debajo de la grafica -->
-    <div class="chart-labels">
-      {% for d in datos.semana %}
-      <div class="chart-day {% if d.es_hoy %}hoy{% endif %}">
-        {{ "HOY" if d.es_hoy else d.dia }}
+      <!-- Grid de accesos rapidos -->
+      <div class="quick-grid">
+        <a href="/ventas" class="quick-card">
+          <div class="quick-icon naranja">💰</div>
+          <div class="quick-info">
+            <div class="quick-title">Ventas</div>
+            <div class="quick-sub">Registrar hoy</div>
+          </div>
+        </a>
+        <a href="/pedidos" class="quick-card">
+          <div class="quick-icon azul">📦</div>
+          <div class="quick-info">
+            <div class="quick-title">Pedidos</div>
+            <div class="quick-sub">Mercancía</div>
+          </div>
+        </a>
+        <div class="quick-card disabled">
+          <div class="quick-icon gris">🗃️</div>
+          <div class="quick-info">
+            <div class="quick-title">Inventario</div>
+            <div class="quick-sub">Próximamente</div>
+          </div>
+        </div>
+        <div class="quick-card disabled">
+          <div class="quick-icon gris">📊</div>
+          <div class="quick-info">
+            <div class="quick-title">Análisis</div>
+            <div class="quick-sub">Próximamente</div>
+          </div>
+        </div>
       </div>
-      {% endfor %}
+
     </div>
+
+    <!-- Columna derecha: grafica semanal -->
+    <div class="dashboard-col-right">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Ventas última semana</div>
+            <div class="chart-total" id="chart-total-semana">
+              ${{ "{:,.0f}".format(datos.semana | sum(attribute='total')).replace(",", ".") }}
+            </div>
+          </div>
+          <div class="chart-badge" id="chart-badge-label">semana</div>
+        </div>
+
+        <!-- Canvas de la grafica de barras -->
+        <div class="chart-wrap">
+          <div class="chart-tooltip" id="chart-tooltip"></div>
+          <canvas id="chart-canvas"></canvas>
+        </div>
+
+        <!-- Etiquetas de dias -->
+        <div class="chart-labels">
+          {% for d in datos.semana %}
+          <div class="chart-day {% if d.es_hoy %}hoy{% endif %}">
+            {{ "HOY" if d.es_hoy else d.dia }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
   </div>
-
-  <!-- Grid de accesos rapidos -->
-  <div class="quick-grid">
-    <a href="/ventas" class="quick-card">
-      <div class="quick-icon naranja">💰</div>
-      <div class="quick-info">
-        <div class="quick-title">Ventas</div>
-        <div class="quick-sub">Registrar hoy</div>
-      </div>
-    </a>
-    <a href="/pedidos" class="quick-card">
-      <div class="quick-icon azul">📦</div>
-      <div class="quick-info">
-        <div class="quick-title">Pedidos</div>
-        <div class="quick-sub">Mercancía</div>
-      </div>
-    </a>
-    <div class="quick-card disabled">
-      <div class="quick-icon gris">🗃️</div>
-      <div class="quick-info">
-        <div class="quick-title">Inventario</div>
-        <div class="quick-sub">Próximamente</div>
-      </div>
-    </div>
-    <div class="quick-card disabled">
-      <div class="quick-icon gris">📊</div>
-      <div class="quick-info">
-        <div class="quick-title">Análisis</div>
-        <div class="quick-sub">Próximamente</div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // Datos de la semana pasados desde Flask al JavaScript
-  const dataSemana = {{ datos.semana | tojson }};
+  // Datos de la semana desde Flask
+  const dataSemana  = {{ datos.semana | tojson }};
+  const totalHoy    = {{ datos.total_hoy }};
+  const nequiHoy    = {{ datos.nequi_hoy }};
+  const daviplataHoy = {{ datos.daviplata_hoy }};
+  const efectivoHoy  = {{ datos.efectivo_hoy }};
 
-  // Dibuja la grafica de barras interactiva en el canvas
+  // Formatea numero a pesos colombianos
+  function fmt(n) {
+    return "$" + Number(n).toLocaleString("es-CO");
+  }
+
+  // Restaura el hero con los datos de hoy
+  function restaurarHoy() {
+    document.getElementById("hero-num").textContent =
+      Number(totalHoy).toLocaleString("es-CO");
+    document.getElementById("bd-nequi").textContent     = fmt(nequiHoy);
+    document.getElementById("bd-daviplata").textContent = fmt(daviplataHoy);
+    document.getElementById("bd-efectivo").textContent  = fmt(efectivoHoy);
+    document.querySelector(".hero-label").textContent   = "Ventas hoy";
+    document.querySelector(".hero-badge").textContent   = "↑ registro del día";
+  }
+
+  // Actualiza el hero con los datos del dia seleccionado en la grafica
+  function actualizarHero(d) {
+    document.getElementById("hero-num").textContent =
+      Number(d.total).toLocaleString("es-CO");
+    document.getElementById("bd-nequi").textContent     = fmt(d.nequi     || 0);
+    document.getElementById("bd-daviplata").textContent = fmt(d.daviplata  || 0);
+    document.getElementById("bd-efectivo").textContent  = fmt(d.efectivo   || 0);
+    document.querySelector(".hero-label").textContent   = d.es_hoy ? "Ventas hoy" : `Ventas del ${d.fecha}`;
+    document.querySelector(".hero-badge").textContent   = d.total > 0 ? fmt(d.total) : "Sin venta";
+  }
+
+  // Dibuja la grafica de barras con pixeles nitidos usando devicePixelRatio
   function dibujarGrafica() {
     const canvas  = document.getElementById("chart-canvas");
     const wrap    = canvas.parentElement;
     const tooltip = document.getElementById("chart-tooltip");
+    const dpr     = window.devicePixelRatio || 1;
 
-    canvas.width  = wrap.clientWidth;
-    canvas.height = wrap.clientHeight;
+    const cssW = wrap.clientWidth;
+    const cssH = wrap.clientHeight;
 
-    const ctx    = canvas.getContext("2d");
-    const W      = canvas.width;
-    const H      = canvas.height;
+    // Ajuste de resolucion para pantallas retina - evita barras borrosas
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.width  = cssW + "px";
+    canvas.style.height = cssH + "px";
+
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+
+    const W      = cssW;
+    const H      = cssH;
     const n      = dataSemana.length;
-    const padX   = 8;
-    const padTop = 16;
-    const padBot = 8;
-    const gap    = 8;
+    const padX   = 6;
+    const padTop = 12;
+    const padBot = 6;
+    const gap    = 7;
     const barW   = (W - padX * 2 - gap * (n - 1)) / n;
     const maxVal = Math.max(...dataSemana.map(d => d.total), 1);
 
     ctx.clearRect(0, 0, W, H);
 
     const barRects = [];
+    let   barActivo = null;
 
-    dataSemana.forEach((d, i) => {
-      const x      = padX + i * (barW + gap);
-      const ratio  = d.total / maxVal;
-      const barH   = Math.max((H - padTop - padBot) * ratio, d.total > 0 ? 8 : 3);
-      const y      = H - padBot - barH;
-      const radius = 6;
+    function dibujarBarras(idxActivo) {
+      ctx.clearRect(0, 0, W, H);
+      dataSemana.forEach((d, i) => {
+        const x      = padX + i * (barW + gap);
+        const ratio  = d.total / maxVal;
+        const barH   = Math.max((H - padTop - padBot) * ratio, d.total > 0 ? 6 : 2);
+        const y      = H - padBot - barH;
+        const r      = Math.min(5, barW / 2);
 
-      // Naranja para hoy, gris claro para los demas dias
-      ctx.fillStyle = d.es_hoy ? "#4ADE80" : "#FB923C";
+        // Naranja fuerte para hoy, naranja palido para el resto, mas brillante si esta activo
+        if (d.es_hoy) {
+          ctx.fillStyle = (idxActivo === i) ? "#EA580C" : "#F97316";
+        } else {
+          ctx.fillStyle = (idxActivo === i) ? "#FB923C" : "#FED7AA";
+        }
 
-      // Barra con esquinas redondeadas en la parte superior
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.lineTo(x + barW - radius, y);
-      ctx.quadraticCurveTo(x + barW, y, x + barW, y + radius);
-      ctx.lineTo(x + barW, y + barH);
-      ctx.lineTo(x, y + barH);
-      ctx.lineTo(x, y + radius);
-      ctx.quadraticCurveTo(x, y, x + radius, y);
-      ctx.closePath();
-      ctx.fill();
+        // Barra con esquinas redondeadas arriba
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + barW - r, y);
+        ctx.arcTo(x + barW, y, x + barW, y + r, r);
+        ctx.lineTo(x + barW, y + barH);
+        ctx.lineTo(x, y + barH);
+        ctx.arcTo(x, y, x + r, y, r);
+        ctx.closePath();
+        ctx.fill();
 
-      barRects.push({ x, y: y - 4, w: barW, h: barH + 4, data: d, cx: x + barW / 2 });
-    });
+        if (barRects[i]) {
+          barRects[i].y = y - 4;
+          barRects[i].h = barH + 4;
+          barRects[i].ty = y;
+        } else {
+          barRects.push({ x, y: y - 4, w: barW, h: barH + 4, data: d, cx: x + barW / 2, ty: y });
+        }
+      });
+    }
 
-    // Muestra el tooltip con el valor al tocar o hacer click en una barra
-    function mostrarTooltip(clientX, clientY) {
+    dibujarBarras(null);
+
+    // Detecta la barra tocada o clickeada y actualiza hero y tooltip
+    function interactuar(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
-      const mx   = clientX - rect.left;
-      const my   = clientY - rect.top;
-      const hit  = barRects.find(b => mx >= b.x && mx <= b.x + b.w && my >= b.y - 10 && my <= b.y + b.h + 10);
+      const mx   = (clientX - rect.left);
+      const my   = (clientY - rect.top);
+      const idx  = barRects.findIndex(b => mx >= b.x && mx <= b.x + b.w);
 
-      if (hit) {
-        // Actualiza el tooltip
-        tooltip.textContent = hit.data.total > 0 ? `$${Number(hit.data.total).toLocaleString("es-CO")}` : "Sin venta";
-        tooltip.style.left  = hit.cx + "px";
-        tooltip.style.top   = (hit.y - 36) + "px";
+      if (idx >= 0) {
+        const b = barRects[idx];
+        barActivo = idx;
+        dibujarBarras(idx);
+
+        tooltip.textContent = b.data.total > 0 ? fmt(b.data.total) : "Sin venta";
+        tooltip.style.left  = b.cx + "px";
+        tooltip.style.top   = (b.ty - 34) + "px";
         tooltip.classList.add("visible");
 
-        // Actualiza la seccion hero con los datos del dia seleccionado
-        const d = hit.data;
-        document.querySelector(".hero-label").textContent =
-          d.es_hoy ? "Ventas hoy" : `Ventas del ${d.fecha}`;
-        document.querySelector(".hero-amount").textContent =
-          "$" + Number(d.total).toLocaleString("es-CO");
-        document.querySelectorAll(".breakdown-value")[0].textContent =
-          "$" + Number(d.nequi || 0).toLocaleString("es-CO");
-        document.querySelectorAll(".breakdown-value")[1].textContent =
-          "$" + Number(d.daviplata || 0).toLocaleString("es-CO");
-        document.querySelectorAll(".breakdown-value")[2].textContent =
-          "$" + Number(d.efectivo || 0).toLocaleString("es-CO");
+        actualizarHero(b.data);
       } else {
+        barActivo = null;
+        dibujarBarras(null);
         tooltip.classList.remove("visible");
+        restaurarHoy();
       }
     }
 
-    // Eventos de click en desktop y touch en movil
-    canvas.addEventListener("click",      e => mostrarTooltip(e.clientX, e.clientY));
+    // Eventos desktop y movil
+    canvas.addEventListener("click",      e => interactuar(e.clientX, e.clientY));
+    canvas.addEventListener("mousemove",  e => interactuar(e.clientX, e.clientY));
+    canvas.addEventListener("mouseleave", () => {
+      dibujarBarras(null);
+      tooltip.classList.remove("visible");
+      restaurarHoy();
+    });
     canvas.addEventListener("touchstart", e => {
       e.preventDefault();
-      mostrarTooltip(e.touches[0].clientX, e.touches[0].clientY);
+      interactuar(e.touches[0].clientX, e.touches[0].clientY);
     }, { passive: false });
-    canvas.addEventListener("mouseleave", () => tooltip.classList.remove("visible"));
   }
 
-  // Redibuja si cambia el tamaño de la ventana
+  // Redibuja al cambiar el tamanio de la ventana
   window.addEventListener("resize", dibujarGrafica);
 
-  // Inicializacion al cargar
+  // Inicializacion
   dibujarGrafica();
 </script>
 {% endblock %}
