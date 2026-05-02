@@ -9,6 +9,14 @@
     width: 100%;
   }
 
+   /* Fix de desbordamiento horizontal en movil */
+  @media (max-width: 768px) {
+    html, body { overflow-x: hidden; max-width: 100vw; }
+    .main-content { width: 100%; min-width: 0; max-width: 100vw; }
+    .page-body { overflow-x: hidden; }
+  }
+
+
   /* En movil el page-body reduce padding para aprovechar pantalla */
   @media (max-width: 480px) {
     .page-body { padding: 10px; }
