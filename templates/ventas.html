@@ -2,16 +2,19 @@
 
 {% block head %}
 <style>
+  /* Estilos especificos del modulo de ventas */
   .ventas-wrap {
     max-width: 560px;
     margin: 0 auto;
     width: 100%;
   }
 
+  /* En movil el page-body reduce padding para aprovechar pantalla */
   @media (max-width: 480px) {
     .page-body { padding: 12px; }
   }
 
+  /* Card del formulario de ventas */
   .form-card {
     background: linear-gradient(160deg, #FFFFFF 0%, #F9FAFB 100%);
     border-radius: var(--radius);
@@ -28,13 +31,11 @@
   }
 
   .form-card-header {
-    padding: 16px 18px;
+    padding: 18px 24px;
     border-bottom: 1px solid var(--gris-100);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap; /* 🔥 FIX */
-    gap: 8px;
   }
 
   .form-card-header h3 {
@@ -46,193 +47,215 @@
   }
 
   .fecha-chip {
-    font-size: 11px;
-    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--naranja-deep);
+    background: var(--naranja-pale);
+    border-radius: 99px;
+    padding: 4px 12px;
   }
 
-  .form-card-body {
-    padding: 16px;
-  }
+  .form-card-body { padding: 20px 24px; }
 
-  @media (min-width: 768px) {
-    .form-card-body {
-      padding: 20px 24px;
-    }
-  }
-
+  /* Campo de fecha */
   .field-fecha { margin-bottom: 20px; }
 
   .field-fecha input[type="date"] {
     width: 100%;
     padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--gris-300);
+    background: var(--blanco);
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--gris-900);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
   }
 
-  /* 🔥 GRID RESPONSIVE (FIX PRINCIPAL) */
+  .field-fecha input[type="date"]:focus {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 3px var(--naranja-glow);
+  }
+
+  /* Grid de campos monetarios 2x2 */
   .fields-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
     margin-bottom: 20px;
   }
 
-  @media (min-width: 480px) {
+  /* 🔥 FIX SOLO MOVIL (sin tocar diseño) */
+  @media (max-width: 480px) {
     .fields-grid {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
     }
   }
 
+  /* Campo monetario individual */
   .money-field { display: flex; flex-direction: column; gap: 7px; }
+
+  .money-field label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
 
   .money-field input {
     width: 100%;
     padding: 13px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--gris-300);
+    background: var(--blanco);
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--gris-900);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .money-field input::placeholder { color: var(--gris-300); font-weight: 400; }
+
+  .money-field input:focus {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 3px var(--naranja-glow);
+    background: var(--naranja-pale);
+  }
+
+  .money-field input.error {
+    border-color: #EF4444;
+    background: #FEF2F2;
+    animation: shake 0.3s ease;
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25%      { transform: translateX(-4px); }
+    75%      { transform: translateX(4px); }
   }
 
   .total-block {
-    padding: 16px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-btn);
   }
 
-  @media (min-width: 480px) {
-    .total-block {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-    }
+  .total-block .total-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
   }
 
   .total-block .total-amount {
-    font-size: clamp(22px, 6vw, 30px);
+    font-family: var(--font-display);
+    font-size: clamp(24px, 6vw, 32px);
+    color: var(--blanco);
+    letter-spacing: -0.02em;
   }
 
   .historial-section {
     margin-top: 16px;
+    animation: slideUp 0.45s 0.1s cubic-bezier(0.22,1,0.36,1) both;
   }
 
   .historial-header {
     padding: 0 4px 12px;
-    flex-wrap: wrap; /* 🔥 FIX */
-    gap: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .historial-header h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+  }
+
+  .historial-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--naranja);
+    background: var(--naranja-pale);
+    border-radius: 99px;
+    padding: 3px 10px;
   }
 
   .table-wrap {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(255,255,255,0.9);
     overflow: hidden;
   }
 
-  .table-scroll {
-    overflow-x: auto;
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  table { width: 100%; min-width: 480px; border-collapse: collapse; }
+
+  thead tr { background: var(--gris-900); }
+
+  thead th {
+    padding: 12px 14px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9CA3AF;
+    text-align: right;
   }
 
-  table {
-    width: 100%;
-    min-width: 480px;
+  thead th:first-child { text-align: left; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--gris-100);
+    transition: background 0.15s;
   }
 
+  tbody tr:last-child  { border-bottom: none; }
+  tbody tr:hover       { background: var(--naranja-pale); }
+
+  tbody td {
+    padding: 13px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gris-700);
+    text-align: right;
+  }
+
+  tbody td:first-child {
+    text-align: left;
+    font-weight: 600;
+    color: var(--gris-900);
+    font-size: 12px;
+  }
+
+  tbody td:last-child { font-weight: 700; color: var(--naranja-deep); }
+
+  .empty-row td {
+    text-align: center !important;
+    color: var(--gris-300) !important;
+    font-weight: 400 !important;
+    font-size: 13px !important;
+    padding: 32px !important;
+  }
 </style>
-{% endblock %}
-
-{% block content %}
-
-<div class="page-header">
-  <div class="page-badge">Registro diario</div>
-  <h2>Ventas <span>del día</span></h2>
-  <p>Ingresa las ventas de hoy</p>
-</div>
-
-<div class="page-body">
-  <div class="ventas-wrap">
-
-    <div class="form-card">
-      <div class="form-card-header">
-        <h3>Nueva venta</h3>
-        <span class="fecha-chip" id="fecha-hoy"></span>
-      </div>
-
-      <div class="form-card-body">
-
-        <div class="field-fecha">
-          <label class="field">Fecha</label>
-          <input type="date" id="input-fecha" />
-        </div>
-
-        <div class="fields-grid">
-          <div class="money-field">
-            <label>💙 Nequi</label>
-            <input type="tel" id="input-nequi" placeholder="$0" />
-          </div>
-          <div class="money-field">
-            <label>💜 Daviplata</label>
-            <input type="tel" id="input-daviplata" placeholder="$0" />
-          </div>
-          <div class="money-field">
-            <label>💵 Efectivo</label>
-            <input type="tel" id="input-efectivo" placeholder="$0" />
-          </div>
-          <div class="money-field">
-            <label>📋 Fiado</label>
-            <input type="tel" id="input-fiado" placeholder="$0" />
-          </div>
-        </div>
-
-        <div class="total-block">
-          <div class="total-label">Total del día</div>
-          <div class="total-amount" id="display-total">$0</div>
-        </div>
-
-        <button class="btn-primary full" id="btn-guardar" onclick="guardarVenta()">
-          Guardar venta
-        </button>
-
-      </div>
-    </div>
-
-    <div class="historial-section">
-      <div class="historial-header">
-        <h3>Historial</h3>
-        <span class="historial-count" id="historial-count">
-          {{ ventas|length }} registro{{ 's' if ventas|length != 1 else '' }}
-        </span>
-      </div>
-
-      <div class="table-wrap">
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Nequi</th>
-                <th>DaviPlata</th>
-                <th>Efectivo</th>
-                <th>Fiado</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-body">
-              {% if ventas %}
-                {% for v in ventas %}
-                <tr>
-                  <td>{{ v.fecha }}</td>
-                  <td>{{ v.nequi }}</td>
-                  <td>{{ v.daviplata }}</td>
-                  <td>{{ v.efectivo }}</td>
-                  <td>{{ v.fiado }}</td>
-                  <td>{{ v.total }}</td>
-                </tr>
-                {% endfor %}
-              {% else %}
-                <tr class="empty-row">
-                  <td colspan="6">Aún no hay ventas registradas</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
 {% endblock %}
