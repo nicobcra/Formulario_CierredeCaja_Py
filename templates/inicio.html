@@ -188,7 +188,7 @@
   .chart-wrap {
     position: relative;
     margin-top: 14px;
-    height: 130px;
+    height: 160px;
   }
 
   .chart-wrap canvas {
@@ -452,10 +452,10 @@
     const W      = cssW;
     const H      = cssH;
     const n      = dataSemana.length;
-    const padX   = 6;
-    const padTop = 12;
+    const padX   = 8;
+    const padTop = 16;
     const padBot = 6;
-    const gap    = 7;
+    const gap    = 6;
     const barW   = (W - padX * 2 - gap * (n - 1)) / n;
     const maxVal = Math.max(...dataSemana.map(d => d.total), 1);
 
@@ -477,7 +477,7 @@
         if (d.es_hoy) {
           ctx.fillStyle = (idxActivo === i) ? "#EA580C" : "#F97316";
         } else {
-          ctx.fillStyle = (idxActivo === i) ? "#FB923C" : "#FED7AA";
+          ctx.fillStyle = (idxActivo === i) ? "#F97316" : "#FDBA74";
         }
 
         // Barra con esquinas redondeadas arriba
