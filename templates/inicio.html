@@ -495,20 +495,28 @@
           ctx.fillStyle = (idxActivo === i) ? "#FB923C" : "#FED7AA";
         }
 
-        // ✅ Usamos roundRect nativo (soportado en todos los navegadores modernos)
+        // Barra con esquinas redondeadas arriba
         ctx.beginPath();
-        ctx.roundRect(x, y, barW, barH, [r, r, 0, 0]);
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + barW - r, y);
+        ctx.arcTo(x + barW, y, x + barW, y + r, r);
+        ctx.lineTo(x + barW, y + barH);
+        ctx.lineTo(x, y + barH);
+        ctx.arcTo(x, y, x + r, y, r);
+        ctx.closePath();
         ctx.fill();
 
-        if (!barRects[i]) {
-          barRects.push({ x, y: y - 4, w: barW, h: barH + 4, data: d, cx: x + barW / 2, ty: y });
-        } else {
-          barRects[i].y  = y - 4;
-          barRects[i].h  = barH + 4;
+        if (barRects[i]) {
+          barRects[i].y = y - 4;
+          barRects[i].h = barH + 4;
           barRects[i].ty = y;
+        } else {
+          barRects.push({ x, y: y - 4, w: barW, h: barH + 4, data: d, cx: x + barW / 2, ty: y });
         }
       });
     }
+
+    dibujarBarras(null);
 
     dibujarBarras(null);
 

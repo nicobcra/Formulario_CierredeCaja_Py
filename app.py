@@ -113,7 +113,7 @@ def obtener_datos_inicio():
         # Ventas de los ultimos 7 dias para la grafica
         dias_semana = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
         semana = []
-        for i in range(6, 0, -1):
+        for i in range(6, -1, -1):
             dia = hoy - timedelta(days=i)
             row = next((r for r in rows if str(r.get("fecha", ""))[:10] == str(dia)), None)
             semana.append({
