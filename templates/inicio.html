@@ -396,16 +396,19 @@
 
 {% block scripts %}
 <script>
-  const dataSemana   = {{ datos.semana | tojson }};
-  const totalHoy     = {{ datos.total_hoy }};
-  const nequiHoy     = {{ datos.nequi_hoy }};
+  // Datos de la semana desde Flask
+  const dataSemana  = {{ datos.semana | tojson }};
+  const totalHoy    = {{ datos.total_hoy }};
+  const nequiHoy    = {{ datos.nequi_hoy }};
   const daviplataHoy = {{ datos.daviplata_hoy }};
   const efectivoHoy  = {{ datos.efectivo_hoy }};
 
+  // Formatea numero a pesos colombianos
   function fmt(n) {
     return "$" + Number(n).toLocaleString("es-CO");
   }
 
+  // Restaura el hero con los datos de hoy
   function restaurarHoy() {
     document.getElementById("hero-num").textContent =
       Number(totalHoy).toLocaleString("es-CO");
@@ -416,6 +419,7 @@
     document.querySelector(".hero-badge").textContent   = "↑ registro del día";
   }
 
+  // Actualiza el hero con los datos del dia seleccionado en la grafica
   function actualizarHero(d) {
     document.getElementById("hero-num").textContent =
       Number(d.total).toLocaleString("es-CO");
@@ -426,6 +430,7 @@
     document.querySelector(".hero-badge").textContent   = d.total > 0 ? fmt(d.total) : "Sin venta";
   }
 
+  // Dibuja la grafica de barras con pixeles nitidos usando devicePixelRatio
   function dibujarGrafica() {
     const canvas  = document.getElementById("chart-canvas");
     const wrap    = canvas.parentElement;
@@ -435,6 +440,7 @@
     const cssW = wrap.clientWidth;
     const cssH = wrap.clientHeight;
 
+    // Ajuste de resolucion para pantallas retina - evita barras borrosas
     canvas.width  = cssW * dpr;
     canvas.height = cssH * dpr;
     canvas.style.width  = cssW + "px";
@@ -451,44 +457,23 @@
     const padBot = 6;
     const gap    = 7;
     const barW   = (W - padX * 2 - gap * (n - 1)) / n;
-
-    // ✅ FIX: maxVal solo considera días con ventas > 0 para no distorsionar la escala
-    const valoresConVenta = dataSemana.map(d => d.total).filter(v => v > 0);
-    const maxVal = valoresConVenta.length > 0 ? Math.max(...valoresConVenta) : 1;
+    const maxVal = Math.max(...dataSemana.map(d => d.total), 1);
 
     ctx.clearRect(0, 0, W, H);
 
     const barRects = [];
+    let   barActivo = null;
 
     function dibujarBarras(idxActivo) {
       ctx.clearRect(0, 0, W, H);
-
       dataSemana.forEach((d, i) => {
-        const x = padX + i * (barW + gap);
+        const x      = padX + i * (barW + gap);
+        const ratio  = d.total / maxVal;
+        const barH   = Math.max((H - padTop - padBot) * ratio, d.total > 0 ? 6 : 2);
+        const y      = H - padBot - barH;
+        const r      = Math.min(5, barW / 2);
 
-        // ✅ FIX: si total es 0 se dibuja solo una línea base sutil, no una barra verde/rara
-        if (d.total === 0) {
-          ctx.fillStyle = "rgba(0,0,0,0.06)";
-          const minH = 3;
-          const y = H - padBot - minH;
-          ctx.beginPath();
-          ctx.roundRect(x, y, barW, minH, 2);
-          ctx.fill();
-
-          if (!barRects[i]) {
-            barRects.push({ x, y: y - 4, w: barW, h: minH + 4, data: d, cx: x + barW / 2, ty: y });
-          } else {
-            barRects[i].ty = y;
-          }
-          return;
-        }
-
-        const ratio = d.total / maxVal;
-        const barH  = Math.max((H - padTop - padBot) * ratio, 6);
-        const y     = H - padBot - barH;
-        const r     = Math.min(5, barW / 2);
-
-        // Naranja fuerte para hoy, naranja pálido para el resto
+        // Naranja fuerte para hoy, naranja palido para el resto, mas brillante si esta activo
         if (d.es_hoy) {
           ctx.fillStyle = (idxActivo === i) ? "#EA580C" : "#F97316";
         } else {
@@ -515,8 +500,6 @@
         }
       });
     }
-
-    dibujarBarras(null);
 
     dibujarBarras(null);
 
