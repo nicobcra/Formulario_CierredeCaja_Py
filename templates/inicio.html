@@ -2,9 +2,6 @@
 
 {% block head %}
 <style>
-  /* Estilos especificos del dashboard de inicio */
-
-  /* Layout de dos columnas en desktop */
   .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -15,7 +12,7 @@
   .dashboard-col-left  { display: flex; flex-direction: column; gap: 16px; }
   .dashboard-col-right { display: flex; flex-direction: column; gap: 16px; }
 
-  /* Card principal hero estilo imagen de referencia */
+  /* Hero card */
   .hero-card {
     background: linear-gradient(160deg, #d6803f 0%, #C2410C 55%, #EA580C 100%);
     border-radius: var(--radius);
@@ -25,7 +22,6 @@
     animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
   }
 
-  /* Circulo decorativo superior derecha */
   .hero-card::before {
     content: '';
     position: absolute;
@@ -36,7 +32,6 @@
     pointer-events: none;
   }
 
-  /* Circulo decorativo inferior izquierda */
   .hero-card::after {
     content: '';
     position: absolute;
@@ -52,7 +47,6 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* Etiqueta superior del hero */
   .hero-label {
     font-size: 10px;
     font-weight: 700;
@@ -62,7 +56,6 @@
     margin-bottom: 10px;
   }
 
-  /* Monto principal con signo de pesos pequeno */
   .hero-amount {
     display: flex;
     align-items: flex-start;
@@ -87,7 +80,6 @@
     letter-spacing: -0.02em;
   }
 
-  /* Badge de estado debajo del monto */
   .hero-badge {
     display: inline-flex;
     align-items: center;
@@ -101,14 +93,12 @@
     margin-bottom: 20px;
   }
 
-  /* Separador entre monto y desglose */
   .hero-divider {
     height: 1px;
     background: rgba(255,255,255,0.1);
     margin-bottom: 16px;
   }
 
-  /* Grid de desglose por metodo de pago */
   .hero-breakdown {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -132,7 +122,7 @@
     color: var(--blanco);
   }
 
-  /* Card de la grafica semanal */
+  /* Chart card */
   .chart-card {
     background: linear-gradient(160deg, #FFFFFF 0%, #FFF7ED 100%);
     border-radius: var(--radius);
@@ -166,7 +156,6 @@
     letter-spacing: -0.02em;
   }
 
-  /* Badge semana */
   .chart-badge {
     font-size: 11px;
     font-weight: 700;
@@ -177,7 +166,6 @@
     white-space: nowrap;
   }
 
-  /* Tooltip al tocar una barra */
   .chart-tooltip {
     background: var(--gris-900);
     color: var(--blanco);
@@ -197,14 +185,12 @@
 
   .chart-tooltip.visible { opacity: 1; }
 
-  /* Contenedor del canvas */
   .chart-wrap {
     position: relative;
     margin-top: 14px;
     height: 130px;
   }
 
-  /* Canvas ocupa_todo el contenedor */
   .chart-wrap canvas {
     position: absolute;
     top: 0; left: 0;
@@ -212,7 +198,6 @@
     height: 100% !important;
   }
 
-  /* Etiquetas de dias */
   .chart-labels {
     display: flex;
     justify-content: space-around;
@@ -229,7 +214,7 @@
 
   .chart-day.hoy { color: var(--naranja); font-weight: 700; }
 
-  /* Grid de accesos rapidos */
+  /* Quick grid */
   .quick-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -282,14 +267,16 @@
 
   .quick-card.disabled { opacity: 0.4; pointer-events: none; }
 
-  /* Responsive movil: una sola columna */
+  /* Responsive */
   @media (max-width: 768px) {
     .page-body      { padding: 12px; }
+    /* ✅ FIX: una sola columna en móvil */
     .dashboard-grid { grid-template-columns: 1fr; }
+    /* ✅ FIX: ocultar columna derecha vacía en móvil */
+    .dashboard-col-right { display: none; }
     .breakdown-value { font-size: 13px; }
   }
 
-  /* Desktop: limitar ancho del hero en pantallas grandes */
   @media (min-width: 1200px) {
     .dashboard-grid { grid-template-columns: 420px 1fr; }
   }
@@ -298,36 +285,31 @@
 
 {% block content %}
 
-<!-- Cabecera del dashboard -->
 <div class="page-header">
   <div class="page-badge">Hoy</div>
   <h2>Hola, <span>Lida</span> 👋</h2>
   <p>Tienda Dilan — resumen del día</p>
 </div>
 
-<!-- Cuerpo del dashboard -->
 <div class="page-body">
   <div class="dashboard-grid">
 
-    <!-- Columna izquierda: hero y accesos rapidos -->
+    <!-- ✅ Columna izquierda: hero → gráfica → accesos rápidos (orden correcto en móvil) -->
     <div class="dashboard-col-left">
 
-      <!-- Card hero con ventas de hoy -->
+      <!-- Hero ventas hoy -->
       <div class="hero-card">
         <div class="hero-label">Ventas hoy</div>
 
-        <!-- Monto principal con signo pequeno -->
         <div class="hero-amount">
           <span class="peso-sign">$</span>
           <span class="peso-num" id="hero-num">{{ "{:,.0f}".format(datos.total_hoy).replace(",", ".") }}</span>
         </div>
 
-        <!-- Badge de estado -->
         <div class="hero-badge">↑ registro del día</div>
 
         <div class="hero-divider"></div>
 
-        <!-- Desglose por metodo de pago -->
         <div class="hero-breakdown">
           <div class="breakdown-item">
             <div class="breakdown-label">💙 Nequi</div>
@@ -344,7 +326,33 @@
         </div>
       </div>
 
-      <!-- Grid de accesos rapidos -->
+      <!-- ✅ Gráfica semanal aquí (entre hero y accesos rápidos) -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Ventas última semana</div>
+            <div class="chart-total" id="chart-total-semana">
+              ${{ "{:,.0f}".format(datos.semana | sum(attribute='total')).replace(",", ".") }}
+            </div>
+          </div>
+          <div class="chart-badge" id="chart-badge-label">semana</div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-tooltip" id="chart-tooltip"></div>
+          <canvas id="chart-canvas"></canvas>
+        </div>
+
+        <div class="chart-labels">
+          {% for d in datos.semana %}
+          <div class="chart-day {% if d.es_hoy %}hoy{% endif %}">
+            {{ "HOY" if d.es_hoy else d.dia }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Accesos rápidos -->
       <div class="quick-grid">
         <a href="/ventas" class="quick-card">
           <div class="quick-icon naranja">💰</div>
@@ -378,35 +386,8 @@
 
     </div>
 
-    <!-- Columna derecha: grafica semanal -->
-    <div class="dashboard-col-right">
-      <div class="chart-card">
-        <div class="chart-header">
-          <div>
-            <div class="chart-title">Ventas última semana</div>
-            <div class="chart-total" id="chart-total-semana">
-              ${{ "{:,.0f}".format(datos.semana | sum(attribute='total')).replace(",", ".") }}
-            </div>
-          </div>
-          <div class="chart-badge" id="chart-badge-label">semana</div>
-        </div>
-
-        <!-- Canvas de la grafica de barras -->
-        <div class="chart-wrap">
-          <div class="chart-tooltip" id="chart-tooltip"></div>
-          <canvas id="chart-canvas"></canvas>
-        </div>
-
-        <!-- Etiquetas de dias -->
-        <div class="chart-labels">
-          {% for d in datos.semana %}
-          <div class="chart-day {% if d.es_hoy %}hoy{% endif %}">
-            {{ "HOY" if d.es_hoy else d.dia }}
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
+    <!-- Columna derecha (desktop): vacía por ahora, para contenido futuro -->
+    <div class="dashboard-col-right"></div>
 
   </div>
 </div>
@@ -415,19 +396,16 @@
 
 {% block scripts %}
 <script>
-  // Datos de la semana desde Flask
-  const dataSemana  = {{ datos.semana | tojson }};
-  const totalHoy    = {{ datos.total_hoy }};
-  const nequiHoy    = {{ datos.nequi_hoy }};
+  const dataSemana   = {{ datos.semana | tojson }};
+  const totalHoy     = {{ datos.total_hoy }};
+  const nequiHoy     = {{ datos.nequi_hoy }};
   const daviplataHoy = {{ datos.daviplata_hoy }};
   const efectivoHoy  = {{ datos.efectivo_hoy }};
 
-  // Formatea numero a pesos colombianos
   function fmt(n) {
     return "$" + Number(n).toLocaleString("es-CO");
   }
 
-  // Restaura el hero con los datos de hoy
   function restaurarHoy() {
     document.getElementById("hero-num").textContent =
       Number(totalHoy).toLocaleString("es-CO");
@@ -438,7 +416,6 @@
     document.querySelector(".hero-badge").textContent   = "↑ registro del día";
   }
 
-  // Actualiza el hero con los datos del dia seleccionado en la grafica
   function actualizarHero(d) {
     document.getElementById("hero-num").textContent =
       Number(d.total).toLocaleString("es-CO");
@@ -449,7 +426,6 @@
     document.querySelector(".hero-badge").textContent   = d.total > 0 ? fmt(d.total) : "Sin venta";
   }
 
-  // Dibuja la grafica de barras con pixeles nitidos usando devicePixelRatio
   function dibujarGrafica() {
     const canvas  = document.getElementById("chart-canvas");
     const wrap    = canvas.parentElement;
@@ -459,7 +435,6 @@
     const cssW = wrap.clientWidth;
     const cssH = wrap.clientHeight;
 
-    // Ajuste de resolucion para pantallas retina - evita barras borrosas
     canvas.width  = cssW * dpr;
     canvas.height = cssH * dpr;
     canvas.style.width  = cssW + "px";
@@ -476,62 +451,74 @@
     const padBot = 6;
     const gap    = 7;
     const barW   = (W - padX * 2 - gap * (n - 1)) / n;
-    const maxVal = Math.max(...dataSemana.map(d => d.total), 1);
+
+    // ✅ FIX: maxVal solo considera días con ventas > 0 para no distorsionar la escala
+    const valoresConVenta = dataSemana.map(d => d.total).filter(v => v > 0);
+    const maxVal = valoresConVenta.length > 0 ? Math.max(...valoresConVenta) : 1;
 
     ctx.clearRect(0, 0, W, H);
 
     const barRects = [];
-    let   barActivo = null;
 
     function dibujarBarras(idxActivo) {
       ctx.clearRect(0, 0, W, H);
-      dataSemana.forEach((d, i) => {
-        const x      = padX + i * (barW + gap);
-        const ratio  = d.total / maxVal;
-        const barH   = Math.max((H - padTop - padBot) * ratio, d.total > 0 ? 6 : 2);
-        const y      = H - padBot - barH;
-        const r      = Math.min(5, barW / 2);
 
-        // Naranja fuerte para hoy, naranja palido para el resto, mas brillante si esta activo
+      dataSemana.forEach((d, i) => {
+        const x = padX + i * (barW + gap);
+
+        // ✅ FIX: si total es 0 se dibuja solo una línea base sutil, no una barra verde/rara
+        if (d.total === 0) {
+          ctx.fillStyle = "rgba(0,0,0,0.06)";
+          const minH = 3;
+          const y = H - padBot - minH;
+          ctx.beginPath();
+          ctx.roundRect(x, y, barW, minH, 2);
+          ctx.fill();
+
+          if (!barRects[i]) {
+            barRects.push({ x, y: y - 4, w: barW, h: minH + 4, data: d, cx: x + barW / 2, ty: y });
+          } else {
+            barRects[i].ty = y;
+          }
+          return;
+        }
+
+        const ratio = d.total / maxVal;
+        const barH  = Math.max((H - padTop - padBot) * ratio, 6);
+        const y     = H - padBot - barH;
+        const r     = Math.min(5, barW / 2);
+
+        // Naranja fuerte para hoy, naranja pálido para el resto
         if (d.es_hoy) {
           ctx.fillStyle = (idxActivo === i) ? "#EA580C" : "#F97316";
         } else {
           ctx.fillStyle = (idxActivo === i) ? "#FB923C" : "#FED7AA";
         }
 
-        // Barra con esquinas redondeadas arriba
+        // ✅ Usamos roundRect nativo (soportado en todos los navegadores modernos)
         ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + barW - r, y);
-        ctx.arcTo(x + barW, y, x + barW, y + r, r);
-        ctx.lineTo(x + barW, y + barH);
-        ctx.lineTo(x, y + barH);
-        ctx.arcTo(x, y, x + r, y, r);
-        ctx.closePath();
+        ctx.roundRect(x, y, barW, barH, [r, r, 0, 0]);
         ctx.fill();
 
-        if (barRects[i]) {
-          barRects[i].y = y - 4;
-          barRects[i].h = barH + 4;
-          barRects[i].ty = y;
-        } else {
+        if (!barRects[i]) {
           barRects.push({ x, y: y - 4, w: barW, h: barH + 4, data: d, cx: x + barW / 2, ty: y });
+        } else {
+          barRects[i].y  = y - 4;
+          barRects[i].h  = barH + 4;
+          barRects[i].ty = y;
         }
       });
     }
 
     dibujarBarras(null);
 
-    // Detecta la barra tocada o clickeada y actualiza hero y tooltip
     function interactuar(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
-      const mx   = (clientX - rect.left);
-      const my   = (clientY - rect.top);
+      const mx   = clientX - rect.left;
       const idx  = barRects.findIndex(b => mx >= b.x && mx <= b.x + b.w);
 
       if (idx >= 0) {
         const b = barRects[idx];
-        barActivo = idx;
         dibujarBarras(idx);
 
         tooltip.textContent = b.data.total > 0 ? fmt(b.data.total) : "Sin venta";
@@ -541,14 +528,12 @@
 
         actualizarHero(b.data);
       } else {
-        barActivo = null;
         dibujarBarras(null);
         tooltip.classList.remove("visible");
         restaurarHoy();
       }
     }
 
-    // Eventos desktop y movil
     canvas.addEventListener("click",      e => interactuar(e.clientX, e.clientY));
     canvas.addEventListener("mousemove",  e => interactuar(e.clientX, e.clientY));
     canvas.addEventListener("mouseleave", () => {
@@ -562,10 +547,7 @@
     }, { passive: false });
   }
 
-  // Redibuja al cambiar el tamanio de la ventana
   window.addEventListener("resize", dibujarGrafica);
-
-  // Inicializacion
   dibujarGrafica();
 </script>
 {% endblock %}
