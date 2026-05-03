@@ -4,10 +4,10 @@
 <style>
   /* Estilos especificos del dashboard de inicio */
 
-  /* Layout de dos columnas en desktop */
+  /* Layout de una sola columna */
   .dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 16px;
     align-items: start;
   }
@@ -15,9 +15,9 @@
   .dashboard-col-left  { display: flex; flex-direction: column; gap: 16px; }
   .dashboard-col-right { display: flex; flex-direction: column; gap: 16px; }
 
-  /* Card principal hero estilo imagen de referencia */
+  /* Card principal hero — ahora en tonos naranja */
   .hero-card {
-    background: linear-gradient(160deg, #14532D 0%, #166534 55%, #15803D 100%);
+    background: linear-gradient(160deg, #7C2D12 0%, #C2410C 55%, #EA580C 100%);
     border-radius: var(--radius);
     padding: 28px 24px 24px;
     position: relative;
@@ -204,7 +204,7 @@
     height: 130px;
   }
 
-  /* Canvas ocupatodo el contenedor */
+  /* Canvas ocupa_todo el contenedor */
   .chart-wrap canvas {
     position: absolute;
     top: 0; left: 0;
@@ -282,16 +282,10 @@
 
   .quick-card.disabled { opacity: 0.4; pointer-events: none; }
 
-  /* Responsive movil: una sola columna */
+  /* Responsive movil */
   @media (max-width: 768px) {
-    .page-body      { padding: 12px; }
-    .dashboard-grid { grid-template-columns: 1fr; }
+    .page-body { padding: 12px; }
     .breakdown-value { font-size: 13px; }
-  }
-
-  /* Desktop: limitar ancho del hero en pantallas grandes */
-  @media (min-width: 1200px) {
-    .dashboard-grid { grid-template-columns: 420px 1fr; }
   }
 </style>
 {% endblock %}
@@ -378,7 +372,7 @@
 
     </div>
 
-    <!-- Columna derecha: grafica semanal -->
+    <!-- Grafica semanal — ahora debajo en columna unica -->
     <div class="dashboard-col-right">
       <div class="chart-card">
         <div class="chart-header">
@@ -416,18 +410,16 @@
 {% block scripts %}
 <script>
   // Datos de la semana desde Flask
-  const dataSemana  = {{ datos.semana | tojson }};
-  const totalHoy    = {{ datos.total_hoy }};
-  const nequiHoy    = {{ datos.nequi_hoy }};
+  const dataSemana   = {{ datos.semana | tojson }};
+  const totalHoy     = {{ datos.total_hoy }};
+  const nequiHoy     = {{ datos.nequi_hoy }};
   const daviplataHoy = {{ datos.daviplata_hoy }};
   const efectivoHoy  = {{ datos.efectivo_hoy }};
 
-  // Formatea numero a pesos colombianos
   function fmt(n) {
     return "$" + Number(n).toLocaleString("es-CO");
   }
 
-  // Restaura el hero con los datos de hoy
   function restaurarHoy() {
     document.getElementById("hero-num").textContent =
       Number(totalHoy).toLocaleString("es-CO");
@@ -438,7 +430,6 @@
     document.querySelector(".hero-badge").textContent   = "↑ registro del día";
   }
 
-  // Actualiza el hero con los datos del dia seleccionado en la grafica
   function actualizarHero(d) {
     document.getElementById("hero-num").textContent =
       Number(d.total).toLocaleString("es-CO");
@@ -449,7 +440,6 @@
     document.querySelector(".hero-badge").textContent   = d.total > 0 ? fmt(d.total) : "Sin venta";
   }
 
-  // Dibuja la grafica de barras con pixeles nitidos usando devicePixelRatio
   function dibujarGrafica() {
     const canvas  = document.getElementById("chart-canvas");
     const wrap    = canvas.parentElement;
@@ -459,7 +449,6 @@
     const cssW = wrap.clientWidth;
     const cssH = wrap.clientHeight;
 
-    // Ajuste de resolucion para pantallas retina - evita barras borrosas
     canvas.width  = cssW * dpr;
     canvas.height = cssH * dpr;
     canvas.style.width  = cssW + "px";
@@ -481,25 +470,22 @@
     ctx.clearRect(0, 0, W, H);
 
     const barRects = [];
-    let   barActivo = null;
 
     function dibujarBarras(idxActivo) {
       ctx.clearRect(0, 0, W, H);
       dataSemana.forEach((d, i) => {
-        const x      = padX + i * (barW + gap);
-        const ratio  = d.total / maxVal;
-        const barH   = Math.max((H - padTop - padBot) * ratio, d.total > 0 ? 6 : 2);
-        const y      = H - padBot - barH;
-        const r      = Math.min(5, barW / 2);
+        const x     = padX + i * (barW + gap);
+        const ratio = d.total / maxVal;
+        const barH  = Math.max((H - padTop - padBot) * ratio, d.total > 0 ? 6 : 2);
+        const y     = H - padBot - barH;
+        const r     = Math.min(5, barW / 2);
 
-        // Naranja fuerte para hoy, naranja palido para el resto, mas brillante si esta activo
         if (d.es_hoy) {
           ctx.fillStyle = (idxActivo === i) ? "#EA580C" : "#F97316";
         } else {
           ctx.fillStyle = (idxActivo === i) ? "#FB923C" : "#FED7AA";
         }
 
-        // Barra con esquinas redondeadas arriba
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.lineTo(x + barW - r, y);
@@ -522,33 +508,26 @@
 
     dibujarBarras(null);
 
-    // Detecta la barra tocada o clickeada y actualiza hero y tooltip
     function interactuar(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
-      const mx   = (clientX - rect.left);
-      const my   = (clientY - rect.top);
+      const mx   = clientX - rect.left;
       const idx  = barRects.findIndex(b => mx >= b.x && mx <= b.x + b.w);
 
       if (idx >= 0) {
         const b = barRects[idx];
-        barActivo = idx;
         dibujarBarras(idx);
-
         tooltip.textContent = b.data.total > 0 ? fmt(b.data.total) : "Sin venta";
         tooltip.style.left  = b.cx + "px";
         tooltip.style.top   = (b.ty - 34) + "px";
         tooltip.classList.add("visible");
-
         actualizarHero(b.data);
       } else {
-        barActivo = null;
         dibujarBarras(null);
         tooltip.classList.remove("visible");
         restaurarHoy();
       }
     }
 
-    // Eventos desktop y movil
     canvas.addEventListener("click",      e => interactuar(e.clientX, e.clientY));
     canvas.addEventListener("mousemove",  e => interactuar(e.clientX, e.clientY));
     canvas.addEventListener("mouseleave", () => {
@@ -562,10 +541,7 @@
     }, { passive: false });
   }
 
-  // Redibuja al cambiar el tamanio de la ventana
   window.addEventListener("resize", dibujarGrafica);
-
-  // Inicializacion
   dibujarGrafica();
 </script>
 {% endblock %}
