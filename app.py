@@ -3,7 +3,16 @@
 # Modulo Web - Flask backend con Supabase - Version 2.0
 
 from flask import Flask, render_template, request, jsonify
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, timezone
+
+# Timezone Colombia (UTC-5, sin horario de verano)
+COL_TZ = timezone(timedelta(hours=-5))
+
+
+def hoy_colombia():
+    return datetime.now(COL_TZ).date()
+
+
 import requests
 import os
 
@@ -101,7 +110,7 @@ def obtener_datos_inicio():
             params={"select": "*", "order": "fecha.desc", "limit": "30"}
         )
         rows = res.json()
-        hoy = date.today()
+        hoy = hoy_colombia()
 
         # Ventas de hoy
         venta_hoy = next((r for r in rows if str(r.get("fecha", ""))[:10] == str(hoy)), None)
