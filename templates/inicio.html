@@ -394,123 +394,6 @@
 
 {% endblock %}
 
-{% block content %}
-
-<!-- Cabecera del dashboard -->
-<div class="page-header">
-  <div class="page-badge">Hoy</div>
-  <h2>Hola, <span>Lida</span> 👋</h2>
-  <p>Tienda Dilan — resumen del día</p>
-</div>
-
-<!-- Cuerpo del dashboard -->
-<div class="page-body">
-  <div class="dashboard-grid">
-
-    <!-- Columna izquierda: hero y accesos rapidos -->
-    <div class="dashboard-col-left">
-
-      <!-- Card hero con ventas de hoy -->
-      <div class="hero-card">
-        <div class="hero-label">Ventas hoy</div>
-
-        <!-- Monto principal con signo pequeno -->
-        <div class="hero-amount">
-          <span class="peso-sign">$</span>
-          <span class="peso-num" id="hero-num">{{ "{:,.0f}".format(datos.total_hoy).replace(",", ".") }}</span>
-        </div>
-
-        <!-- Badge de estado -->
-        <div class="hero-badge">↑ registro del día</div>
-
-        <div class="hero-divider"></div>
-
-        <!-- Desglose por metodo de pago -->
-        <div class="hero-breakdown">
-          <div class="breakdown-item">
-            <div class="breakdown-label">💙 Nequi</div>
-            <div class="breakdown-value" id="bd-nequi">${{ "{:,.0f}".format(datos.nequi_hoy).replace(",", ".") }}</div>
-          </div>
-          <div class="breakdown-item">
-            <div class="breakdown-label">💜 Daviplata</div>
-            <div class="breakdown-value" id="bd-daviplata">${{ "{:,.0f}".format(datos.daviplata_hoy).replace(",", ".") }}</div>
-          </div>
-          <div class="breakdown-item">
-            <div class="breakdown-label">💵 Efectivo</div>
-            <div class="breakdown-value" id="bd-efectivo">${{ "{:,.0f}".format(datos.efectivo_hoy).replace(",", ".") }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Grid de accesos rapidos -->
-      <div class="quick-grid">
-        <a href="/ventas" class="quick-card">
-          <div class="quick-icon naranja">💰</div>
-          <div class="quick-info">
-            <div class="quick-title">Ventas</div>
-            <div class="quick-sub">Registrar hoy</div>
-          </div>
-        </a>
-        <a href="/pedidos" class="quick-card">
-          <div class="quick-icon azul">📦</div>
-          <div class="quick-info">
-            <div class="quick-title">Pedidos</div>
-            <div class="quick-sub">Mercancía</div>
-          </div>
-        </a>
-        <div class="quick-card disabled">
-          <div class="quick-icon gris">🗃️</div>
-          <div class="quick-info">
-            <div class="quick-title">Inventario</div>
-            <div class="quick-sub">Próximamente</div>
-          </div>
-        </div>
-        <div class="quick-card disabled">
-          <div class="quick-icon gris">📊</div>
-          <div class="quick-info">
-            <div class="quick-title">Análisis</div>
-            <div class="quick-sub">Próximamente</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Columna derecha: grafica semanal -->
-    <div class="dashboard-col-right">
-      <div class="chart-card">
-        <div class="chart-header">
-          <div>
-            <div class="chart-title">Ventas última semana</div>
-            <div class="chart-total" id="chart-total-semana">
-              ${{ "{:,.0f}".format(datos.semana | sum(attribute='total')).replace(",", ".") }}
-            </div>
-          </div>
-          <div class="chart-badge" id="chart-badge-label">semana</div>
-        </div>
-
-        <!-- Canvas de la grafica de barras -->
-        <div class="chart-wrap">
-          <div class="chart-tooltip" id="chart-tooltip"></div>
-          <canvas id="chart-canvas"></canvas>
-        </div>
-
-        <!-- Etiquetas de dias -->
-        <div class="chart-labels">
-          {% for d in datos.semana %}
-          <div class="chart-day {% if d.es_hoy %}hoy{% endif %}">
-            {{ "HOY" if d.es_hoy else d.dia }}
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-{% endblock %}
-
 {% block scripts %}
 <script>
   // Datos de la semana desde Flask
@@ -620,16 +503,13 @@
 
     dibujarBarras(null);
 
-    // Detecta la barra tocada o clickeada y actualiza hero y tooltip
     function interactuar(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
-      const mx   = (clientX - rect.left);
-      const my   = (clientY - rect.top);
+      const mx   = clientX - rect.left;
       const idx  = barRects.findIndex(b => mx >= b.x && mx <= b.x + b.w);
 
       if (idx >= 0) {
         const b = barRects[idx];
-        barActivo = idx;
         dibujarBarras(idx);
 
         tooltip.textContent = b.data.total > 0 ? fmt(b.data.total) : "Sin venta";
@@ -639,14 +519,12 @@
 
         actualizarHero(b.data);
       } else {
-        barActivo = null;
         dibujarBarras(null);
         tooltip.classList.remove("visible");
         restaurarHoy();
       }
     }
 
-    // Eventos desktop y movil
     canvas.addEventListener("click",      e => interactuar(e.clientX, e.clientY));
     canvas.addEventListener("mousemove",  e => interactuar(e.clientX, e.clientY));
     canvas.addEventListener("mouseleave", () => {
@@ -660,10 +538,7 @@
     }, { passive: false });
   }
 
-  // Redibuja al cambiar el tamanio de la ventana
   window.addEventListener("resize", dibujarGrafica);
-
-  // Inicializacion
   dibujarGrafica();
 </script>
 {% endblock %}
