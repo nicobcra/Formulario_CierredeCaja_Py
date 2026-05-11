@@ -176,8 +176,103 @@ def pedidos():
 
 # Ruta del modulo de inventario
 @app.route("/inventario")
+# Devuelve todos los productos del inventario ordenados por nombre
+def obtener_inventario():
+    try:
+        res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/inventario",
+            headers=HEADERS,
+            params={"select": "*,proveedores(nombre)", "activo": "eq.true", "order": "nombre.asc"}
+        )
+        productos = []
+        for row in res.json():
+            precio_compra = row.get("precio_compra", 0) or 0
+            precio_venta  = row.get("precio_venta", 0)  or 0
+            margen = round(((precio_venta - precio_compra) / precio_compra) * 100) if precio_compra > 0 else 0
+            stock  = row.get("stock", 0) or 0
+            productos.append({
+                "id":            row.get("id"),
+                "nombre":        row.get("nombre", ""),
+                "proveedor":     row.get("proveedores", {}).get("nombre", "") if row.get("proveedores") else "",
+                "stock":         stock,
+                "stock_minimo":  row.get("stock_minimo", 5),
+                "precio_compra": formatear_cop(precio_compra),
+                "precio_venta":  formatear_cop(precio_venta),
+                "margen":        margen,
+                "stock_bajo":    stock <= row.get("stock_minimo", 5),
+            })
+        return productos
+    except Exception:
+        return []
+
+# Ruta del modulo de inventario
+@app.route("/inventario")
 def inventario():
-    return render_template("inventario.html", modulo="inventario")
+    productos         = obtener_inventario()
+    proveedores       = obtener_proveedores()
+    total_productos   = len(productos)
+    stock_bajo        = len([p for p in productos if p["stock_bajo"]])
+    alta_rotacion     = len([p for p in productos if p["margen"] >= 25])
+    return render_template("inventario.html",
+        modulo="inventario",
+        productos=productos,
+        proveedores=proveedores,
+        total_productos=total_productos,
+        stock_bajo=stock_bajo,
+        alta_rotacion=alta_rotacion
+    )
+
+# Guarda un producto nuevo en el inventario
+@app.route("/guardar-producto", methods=["POST"])
+def guardar_producto():
+    try:
+        data = request.json
+        precio_compra = parse_num(data.get("precio_compra", 0))
+        precio_venta  = parse_num(data.get("precio_venta", 0))
+        payload = {
+            "nombre":        data.get("nombre", "").strip(),
+            "proveedor_id":  data.get("proveedor_id") or None,
+            "stock":         int(data.get("stock", 0)),
+            "stock_minimo":  int(data.get("stock_minimo", 5)),
+            "precio_compra": precio_compra,
+            "precio_venta":  precio_venta,
+            "activo":        True,
+        }
+        res = requests.post(
+            f"{SUPABASE_URL}/rest/v1/inventario",
+            headers=HEADERS,
+            json=payload
+        )
+        if res.status_code not in (200, 201):
+            return jsonify({"ok": False, "error": res.text}), 500
+        return jsonify({"ok": True, "producto": res.json()[0]})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+# Actualiza el stock de un producto sumando o restando unidades
+@app.route("/actualizar-stock", methods=["POST"])
+def actualizar_stock():
+    try:
+        data       = request.json
+        product_id = data.get("id")
+        delta      = int(data.get("delta", 0))
+        res_get    = requests.get(
+            f"{SUPABASE_URL}/rest/v1/inventario",
+            headers=HEADERS,
+            params={"id": f"eq.{product_id}", "select": "stock"}
+        )
+        stock_actual = res_get.json()[0].get("stock", 0)
+        nuevo_stock  = max(0, stock_actual + delta)
+        res = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/inventario?id=eq.{product_id}",
+            headers=HEADERS,
+            json={"stock": nuevo_stock, "updated_at": "now()"}
+        )
+        if res.status_code not in (200, 201, 204):
+            return jsonify({"ok": False, "error": res.text}), 500
+        return jsonify({"ok": True, "stock": nuevo_stock})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 # Ruta del modulo de analisis y dashboard
@@ -315,7 +410,26 @@ def guardar_pedido():
                 json=item_payload
             )
 
-        return jsonify({"ok": True, "pedido_id": pedido_id, "total": formatear_cop(total)})
+            # Actualizar stock del inventario por cada item del pedido
+            for item in items:
+                nombre = item.get("producto_nombre", "").strip().lower()
+                cantidad = int(item.get("cantidad", 1))
+                res_inv = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/inventario",
+                    headers=HEADERS,
+                    params={"select": "id,stock", "activo": "eq.true"}
+                )
+                match = next((p for p in res_inv.json() if p.get("id") and
+                              nombre in item.get("producto_nombre", "").lower()), None)
+                if match:
+                    nuevo_stock = match.get("stock", 0) + cantidad
+                    requests.patch(
+                        f"{SUPABASE_URL}/rest/v1/inventario?id=eq.{match['id']}",
+                        headers=HEADERS,
+                        json={"stock": nuevo_stock, "updated_at": "now()"}
+                    )
+
+            return jsonify({"ok": True, "pedido_id": pedido_id, "total": formatear_cop(total)})
 
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500

@@ -1,14 +1,764 @@
 {% extends "base.html" %}
+
+{% block head %}
+<style>
+  /* Estilos especificos del modulo de inventario */
+
+  /* Barra de busqueda de productos */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .search-wrap .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 13px 14px 13px 40px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--gris-300);
+    background: var(--blanco);
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--gris-900);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow-card);
+  }
+
+  .search-input:focus {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 3px var(--naranja-glow);
+  }
+
+  /* Filtros de tabs: Todos, Stock bajo, Alta rotacion */
+  .filtros {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filtros::-webkit-scrollbar { display: none; }
+
+  .filtro-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 99px;
+    border: 1.5px solid var(--gris-300);
+    background: var(--blanco);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gris-500);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .filtro-btn.active {
+    background: var(--gris-900);
+    border-color: var(--gris-900);
+    color: var(--blanco);
+  }
+
+  .filtro-btn.active.naranja {
+    background: var(--naranja);
+    border-color: var(--naranja);
+  }
+
+  /* Lista de productos */
+  .productos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Card de producto individual */
+  .producto-card {
+    background: var(--blanco);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--gris-100);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.15s;
+    cursor: pointer;
+    animation: slideUp 0.3s ease both;
+  }
+
+  .producto-card:hover  { transform: translateY(-1px); }
+  .producto-card:active { transform: scale(0.99); }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Icono del producto con inicial */
+  .producto-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--naranja-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    font-weight: 700;
+    color: var(--naranja-deep);
+    font-family: var(--font-display);
+  }
+
+  /* Info principal del producto */
+  .producto-info { flex: 1; min-width: 0; }
+
+  .producto-nombre {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gris-900);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .producto-meta {
+    font-size: 12px;
+    color: var(--gris-500);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .producto-margen {
+    font-weight: 700;
+    color: var(--naranja-deep);
+  }
+
+  /* Badge de nivel de stock */
+  .stock-badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 99px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .stock-badge.bajo  { background: #FEE2E2; color: #DC2626; }
+  .stock-badge.medio { background: #FEF9C3; color: #854D0E; }
+  .stock-badge.alto  { background: #DCFCE7; color: #166534; }
+
+  /* Modal de detalle y edicion del producto */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .modal-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Sheet del modal que sube desde abajo */
+  .modal-sheet {
+    background: var(--blanco);
+    border-radius: var(--radius) var(--radius) 0 0;
+    width: 100%;
+    max-width: 560px;
+    padding: 0 0 32px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.visible .modal-sheet {
+    transform: translateY(0);
+  }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--gris-300);
+    border-radius: 99px;
+    margin: 12px auto 20px;
+  }
+
+  .modal-header {
+    padding: 0 24px 16px;
+    border-bottom: 1px solid var(--gris-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gris-900);
+  }
+
+  .modal-close {
+    background: var(--gris-100);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 99px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gris-500);
+  }
+
+  .modal-body { padding: 20px 24px; }
+
+  /* Grid de datos del producto en el modal */
+  .modal-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .modal-stat {
+    background: var(--gris-50);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+  }
+
+  .modal-stat-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gris-900);
+    margin-bottom: 3px;
+  }
+
+  .modal-stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+  }
+
+  /* Controles de ajuste de stock */
+  .stock-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    background: var(--gris-50);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+
+  .stock-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 99px;
+    border: none;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s;
+  }
+
+  .stock-btn:active { transform: scale(0.9); }
+  .stock-btn.minus  { background: #FEE2E2; color: #DC2626; }
+  .stock-btn.plus   { background: #DCFCE7; color: #166534; }
+
+  .stock-display {
+    font-family: var(--font-body);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gris-900);
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* Formulario de nuevo producto */
+  .nuevo-prod-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(255,255,255,0.9);
+    overflow: hidden;
+    margin-bottom: 16px;
+    animation: slideUp 0.35s ease both;
+  }
+
+  .nuevo-prod-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gris-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nuevo-prod-header h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+  }
+
+  .nuevo-prod-body { padding: 20px; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  /* Estado vacio cuando no hay productos */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--gris-300);
+  }
+
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* Responsive movil */
+  @media (max-width: 480px) {
+    .page-body   { padding: 12px; }
+    .modal-sheet { max-width: 100%; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+
+<!-- Cabecera del modulo de inventario -->
 <div class="page-header">
-  <div class="page-badge">Próximamente</div>
+  <div class="page-badge">Control de productos</div>
   <h2>Inven<span>tario</span></h2>
-  <p>Esta sección estará disponible pronto</p>
+  <p>{{ total_productos }} productos registrados</p>
 </div>
+
+<!-- Cuerpo del modulo de inventario -->
 <div class="page-body">
-  <div class="card"><div class="card-body" style="text-align:center; padding:48px;">
-    <div style="font-size:48px; margin-bottom:16px;">🗃️</div>
-    <div style="font-size:15px; color:var(--gris-500);">Módulo en construcción</div>
-  </div></div>
+
+  <!-- Formulario para agregar producto nuevo -->
+  <div class="nuevo-prod-card" id="form-nuevo-prod" style="display:none;">
+    <div class="nuevo-prod-header">
+      <h3>Nuevo producto</h3>
+      <button class="modal-close" onclick="ocultarFormNuevo()">✕</button>
+    </div>
+    <div class="nuevo-prod-body">
+      <div class="field" style="margin-bottom:12px;">
+        <label>Nombre del producto</label>
+        <input type="text" id="np-nombre" placeholder="Ej: Leche Alqueria 1L" />
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Proveedor</label>
+          <select id="np-proveedor">
+            <option value="">Sin proveedor</option>
+            {% for p in proveedores %}
+            <option value="{{ p.id }}">{{ p.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>Stock inicial</label>
+          <input type="number" id="np-stock" placeholder="0" min="0" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Precio compra</label>
+          <input type="tel" id="np-precio-compra" inputmode="numeric" placeholder="$0"
+            oninput="calcularMargenNuevo()" />
+        </div>
+        <div class="field">
+          <label>Precio venta</label>
+          <input type="tel" id="np-precio-venta" inputmode="numeric" placeholder="$0"
+            oninput="calcularMargenNuevo()" />
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Stock mínimo (alerta)</label>
+        <input type="number" id="np-stock-min" placeholder="5" min="1" inputmode="numeric" value="5" />
+      </div>
+
+      <!-- Preview del margen calculado -->
+      <div id="margen-preview" style="display:none; background:var(--naranja-pale); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:12px; font-weight:600; color:var(--gris-500);">Margen calculado</span>
+        <span id="margen-preview-val" style="font-size:16px; font-weight:700; color:var(--naranja-deep);">0%</span>
+      </div>
+
+      <button class="btn-primary full" onclick="guardarProducto()">Guardar producto</button>
+    </div>
+  </div>
+
+  <!-- Barra de busqueda -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" id="buscador"
+      placeholder="Buscar producto..."
+      oninput="filtrarProductos()" />
+  </div>
+
+  <!-- Tabs de filtro -->
+  <div class="filtros">
+    <button class="filtro-btn active naranja" onclick="setFiltro('todos', this)">
+      Todos ({{ total_productos }})
+    </button>
+    <button class="filtro-btn" onclick="setFiltro('bajo', this)">
+      Stock bajo ({{ stock_bajo }})
+    </button>
+    <button class="filtro-btn" onclick="setFiltro('rotacion', this)">
+      Alta rotación ({{ alta_rotacion }})
+    </button>
+  </div>
+
+  <!-- Boton agregar producto -->
+  <button class="btn-primary full" onclick="mostrarFormNuevo()"
+    style="margin-bottom:16px;">
+    + Agregar producto
+  </button>
+
+  <!-- Lista de productos -->
+  <div class="productos-lista" id="productos-lista">
+    {% if productos %}
+      {% for p in productos %}
+      <div class="producto-card"
+        data-nombre="{{ p.nombre | lower }}"
+        data-stock="{{ p.stock }}"
+        data-stock-bajo="{{ 'true' if p.stock_bajo else 'false' }}"
+        data-margen="{{ p.margen }}"
+        onclick="abrirModal({{ p.id }}, '{{ p.nombre }}', {{ p.stock }}, {{ p.stock_minimo }}, '{{ p.precio_compra }}', '{{ p.precio_venta }}', {{ p.margen }}, '{{ p.proveedor }}')">
+
+        <!-- Icono con inicial del producto -->
+        <div class="producto-icon">{{ p.nombre[0] | upper }}</div>
+
+        <!-- Info del producto -->
+        <div class="producto-info">
+          <div class="producto-nombre">{{ p.nombre }}</div>
+          <div class="producto-meta">
+            <span>{{ p.stock }} en stock</span>
+            <span>·</span>
+            <span class="producto-margen">Margen {{ p.margen }}%</span>
+          </div>
+        </div>
+
+        <!-- Badge de nivel de stock -->
+        {% if p.stock <= 0 %}
+          <span class="stock-badge bajo">Agotado</span>
+        {% elif p.stock_bajo %}
+          <span class="stock-badge bajo">Bajo</span>
+        {% elif p.margen >= 25 %}
+          <span class="stock-badge alto">Alta</span>
+        {% else %}
+          <span class="stock-badge medio">Normal</span>
+        {% endif %}
+
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🗃️</div>
+        <p>Aún no hay productos.<br>Agrega el primero.</p>
+      </div>
+    {% endif %}
+  </div>
+
 </div>
+
+<!-- Modal de detalle del producto -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModalOverlay(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-nombre">Producto</div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Stats del producto -->
+      <div class="modal-stats">
+        <div class="modal-stat">
+          <div class="modal-stat-val" id="modal-precio-compra">—</div>
+          <div class="modal-stat-label">Compra</div>
+        </div>
+        <div class="modal-stat">
+          <div class="modal-stat-val" id="modal-precio-venta">—</div>
+          <div class="modal-stat-label">Venta</div>
+        </div>
+        <div class="modal-stat">
+          <div class="modal-stat-val" id="modal-margen" style="color:var(--naranja-deep);">—</div>
+          <div class="modal-stat-label">Margen</div>
+        </div>
+      </div>
+
+      <!-- Proveedor -->
+      <div style="font-size:12px; color:var(--gris-500); margin-bottom:16px;" id="modal-proveedor"></div>
+
+      <!-- Controles de ajuste de stock -->
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--gris-500); margin-bottom:10px;">
+        Ajustar stock
+      </div>
+      <div class="stock-controls">
+        <button class="stock-btn minus" onclick="ajustarStock(-1)">−</button>
+        <div class="stock-display" id="modal-stock">0</div>
+        <button class="stock-btn plus"  onclick="ajustarStock(+1)">+</button>
+      </div>
+
+      <!-- Boton guardar cambio de stock -->
+      <button class="btn-primary full" id="btn-guardar-stock" onclick="guardarStock()">
+        Guardar stock
+      </button>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Estado del modal activo
+  let productoActivo = null;
+  let stockTemporal  = 0;
+  let filtroActivo   = "todos";
+
+  // Formato de pesos colombianos
+  function fmt(n) {
+    return "$" + Number(n).toLocaleString("es-CO");
+  }
+
+  // Limpia simbolo de pesos para convertir a numero
+  function parseNum(t) {
+    return parseInt(String(t).replace(/\./g,"").replace(/,/g,"").replace(/\$/g,"").trim()) || 0;
+  }
+
+  // Formatea entrada monetaria automaticamente
+  function fmtInput(el) {
+    const t = el.value.replace(/\./g,"").replace(/,/g,"").replace(/\$/g,"");
+    if (!t) return;
+    const n = parseInt(t);
+    if (!isNaN(n)) el.value = fmt(n);
+  }
+
+  // Calcula y muestra el margen en el formulario de nuevo producto
+  function calcularMargenNuevo() {
+    fmtInput(document.getElementById("np-precio-compra"));
+    fmtInput(document.getElementById("np-precio-venta"));
+    const compra = parseNum(document.getElementById("np-precio-compra").value);
+    const venta  = parseNum(document.getElementById("np-precio-venta").value);
+    const prev   = document.getElementById("margen-preview");
+    if (compra > 0 && venta > 0) {
+      const m = Math.round(((venta - compra) / compra) * 100);
+      document.getElementById("margen-preview-val").textContent = m + "%";
+      prev.style.display = "flex";
+    } else {
+      prev.style.display = "none";
+    }
+  }
+
+  // Muestra el formulario de nuevo producto
+  function mostrarFormNuevo() {
+    document.getElementById("form-nuevo-prod").style.display = "block";
+    document.getElementById("np-nombre").focus();
+    document.getElementById("form-nuevo-prod").scrollIntoView({ behavior: "smooth" });
+  }
+
+  // Oculta y limpia el formulario de nuevo producto
+  function ocultarFormNuevo() {
+    document.getElementById("form-nuevo-prod").style.display = "none";
+    ["np-nombre","np-stock","np-precio-compra","np-precio-venta"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("np-stock-min").value = "5";
+    document.getElementById("margen-preview").style.display = "none";
+  }
+
+  // Guarda un producto nuevo enviandolo al backend
+  async function guardarProducto() {
+    const nombre = document.getElementById("np-nombre").value.trim();
+    if (!nombre) { mostrarToast("Escribe el nombre del producto", "error"); return; }
+
+    const btn    = document.querySelector("#form-nuevo-prod .btn-primary");
+    btn.disabled = true;
+    btn.textContent = "Guardando...";
+
+    try {
+      const res  = await fetch("/guardar-producto", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          nombre,
+          proveedor_id:  document.getElementById("np-proveedor").value || null,
+          stock:         parseInt(document.getElementById("np-stock").value) || 0,
+          stock_minimo:  parseInt(document.getElementById("np-stock-min").value) || 5,
+          precio_compra: parseNum(document.getElementById("np-precio-compra").value),
+          precio_venta:  parseNum(document.getElementById("np-precio-venta").value),
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        ocultarFormNuevo();
+        mostrarToast("✓ Producto guardado", "success");
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        mostrarToast("Error: " + data.error, "error");
+      }
+    } catch {
+      mostrarToast("Error de conexión", "error");
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = "Guardar producto";
+    }
+  }
+
+  // Abre el modal con los datos del producto seleccionado
+  function abrirModal(id, nombre, stock, stockMin, precioCompra, precioVenta, margen, proveedor) {
+    productoActivo = { id, stock, stockMin };
+    stockTemporal  = stock;
+
+    document.getElementById("modal-nombre").textContent       = nombre;
+    document.getElementById("modal-stock").textContent        = stock;
+    document.getElementById("modal-precio-compra").textContent = precioCompra;
+    document.getElementById("modal-precio-venta").textContent  = precioVenta;
+    document.getElementById("modal-margen").textContent        = margen + "%";
+    document.getElementById("modal-proveedor").textContent     = proveedor ? "Proveedor: " + proveedor : "";
+
+    document.getElementById("modal-overlay").classList.add("visible");
+    document.body.style.overflow = "hidden";
+  }
+
+  // Cierra el modal
+  function cerrarModal() {
+    document.getElementById("modal-overlay").classList.remove("visible");
+    document.body.style.overflow = "";
+    productoActivo = null;
+  }
+
+  // Cierra el modal solo si se toca el overlay oscuro
+  function cerrarModalOverlay(e) {
+    if (e.target === document.getElementById("modal-overlay")) cerrarModal();
+  }
+
+  // Ajusta el stock temporal con los botones + y -
+  function ajustarStock(delta) {
+    stockTemporal = Math.max(0, stockTemporal + delta);
+    document.getElementById("modal-stock").textContent = stockTemporal;
+  }
+
+  // Guarda el nuevo stock en Supabase
+  async function guardarStock() {
+    if (!productoActivo) return;
+    const delta  = stockTemporal - productoActivo.stock;
+    if (delta === 0) { cerrarModal(); return; }
+
+    const btn    = document.getElementById("btn-guardar-stock");
+    btn.disabled = true;
+    btn.textContent = "Guardando...";
+
+    try {
+      const res  = await fetch("/actualizar-stock", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ id: productoActivo.id, delta })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        cerrarModal();
+        mostrarToast("✓ Stock actualizado", "success");
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        mostrarToast("Error: " + data.error, "error");
+      }
+    } catch {
+      mostrarToast("Error de conexión", "error");
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = "Guardar stock";
+    }
+  }
+
+  // Cambia el filtro activo de la lista de productos
+  function setFiltro(filtro, btn) {
+    filtroActivo = filtro;
+    document.querySelectorAll(".filtro-btn").forEach(b => {
+      b.classList.remove("active", "naranja");
+    });
+    btn.classList.add("active");
+    if (filtro === "todos") btn.classList.add("naranja");
+    filtrarProductos();
+  }
+
+  // Filtra los productos por busqueda y por filtro activo
+  function filtrarProductos() {
+    const query = document.getElementById("buscador").value.toLowerCase().trim();
+    const cards = document.querySelectorAll(".producto-card");
+    let   vis   = 0;
+
+    cards.forEach(card => {
+      const nombre    = card.dataset.nombre || "";
+      const stockBajo = card.dataset.stockBajo === "true";
+      const margen    = parseInt(card.dataset.margen) || 0;
+
+      const matchQuery  = nombre.includes(query);
+      const matchFiltro =
+        filtroActivo === "todos"    ? true :
+        filtroActivo === "bajo"     ? stockBajo :
+        filtroActivo === "rotacion" ? margen >= 25 : true;
+
+      const mostrar = matchQuery && matchFiltro;
+      card.style.display = mostrar ? "flex" : "none";
+      if (mostrar) vis++;
+    });
+
+    // Muestra estado vacio si no hay resultados
+    let empty = document.getElementById("empty-filtered");
+    if (vis === 0) {
+      if (!empty) {
+        empty = document.createElement("div");
+        empty.id = "empty-filtered";
+        empty.className = "empty-state";
+        empty.innerHTML = '<div class="empty-icon">🔍</div><p>Sin resultados</p>';
+        document.getElementById("productos-lista").appendChild(empty);
+      }
+      empty.style.display = "block";
+    } else if (empty) {
+      empty.style.display = "none";
+    }
+  }
+</script>
 {% endblock %}
