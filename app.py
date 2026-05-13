@@ -2,7 +2,7 @@
 # Nicolas Becerra - 30/04/26
 # Modulo Web - Flask backend con Supabase - Version 2.0
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, session
 from datetime import date, timedelta, datetime, timezone
 
 # Timezone Colombia (UTC-5, sin horario de verano)
@@ -17,6 +17,7 @@ import requests
 import os
 
 app = Flask(__name__)
+app.secret_key = "super_secret_key"
 
 # Credenciales Supabase
 SUPABASE_URL = "https://brumjdswhdzkoftmxjmx.supabase.co"
@@ -153,8 +154,49 @@ def obtener_datos_inicio():
 
 
 # LOGIN
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def login():
+
+    if request.method == "POST":
+
+        correo = request.form.get("correo")
+        password = request.form.get("password")
+
+        try:
+
+            res = requests.get(
+                f"{SUPABASE_URL}/rest/v1/usuarios",
+                headers=HEADERS,
+                params={
+                    "correo": f"eq.{correo}",
+                    "password": f"eq.{password}",
+                    "activo": "eq.true",
+                    "select": "*"
+                }
+            )
+
+            usuarios = res.json()
+
+            if len(usuarios) == 0:
+                return render_template(
+                    "login.html",
+                    error="Credenciales incorrectas"
+                )
+
+            usuario = usuarios[0]
+
+            session["usuario_id"] = usuario["id"]
+            session["tienda_id"] = usuario["tienda_id"]
+            session["usuario_nombre"] = usuario["nombre"]
+
+            return redirect("/inicio")
+
+        except Exception as e:
+            return render_template(
+                "login.html",
+                error=str(e)
+            )
+
     return render_template("login.html")
 
 
