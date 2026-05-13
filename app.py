@@ -161,7 +161,7 @@ def login():
 
     if request.method == "POST":
 
-        correo = request.form.get("correo")
+        telefono = request.form.get("telefono")
         password = request.form.get("password")
 
         try:
@@ -170,7 +170,7 @@ def login():
                 f"{SUPABASE_URL}/rest/v1/usuarios",
                 headers=HEADERS,
                 params={
-                    "correo": f"eq.{correo}",
+                    "telefono": f"eq.{telefono}",
                     "password": f"eq.{password}",
                     "activo": "eq.true",
                     "select": "*"
@@ -200,6 +200,10 @@ def login():
             )
 
     return render_template("login.html")
+
+@app.route("/registro")
+def registro():
+    return render_template("registro.html")
 
 # Ruta de Registro
 @app.route("/crear-cuenta", methods=["POST"])
