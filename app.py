@@ -81,7 +81,12 @@ def obtener_proveedores():
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/proveedores",
             headers=HEADERS,
-            params={"select": "*", "activo": "eq.true", "order": "nombre.asc"}
+            params={
+                "select": "*",
+                "activo": "eq.true",
+                "tienda_id": f"eq.{session['tienda_id']}",
+                "order": "nombre.asc"
+            }
         )
         return res.json()
     except Exception:
@@ -94,7 +99,11 @@ def obtener_pedidos():
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/pedidos",
             headers=HEADERS,
-            params={"select": "*,proveedores(nombre)", "order": "created_at.desc"}
+            params={
+                "select": "*,proveedores(nombre)",
+                "tienda_id": f"eq.{session['tienda_id']}",
+                "order": "created_at.desc"
+            }
         )
         pedidos = []
         for row in res.json():
@@ -117,7 +126,12 @@ def obtener_datos_inicio():
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/ventas",
             headers=HEADERS,
-            params={"select": "*", "order": "fecha.desc", "limit": "30"}
+            params={
+                "select": "*",
+                "tienda_id": f"eq.{session['tienda_id']}",
+                "order": "fecha.desc",
+                "limit": "30"
+            }
         )
         rows = res.json()
         hoy = hoy_colombia()
@@ -351,7 +365,12 @@ def obtener_inventario():
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/inventario",
             headers=HEADERS,
-            params={"select": "*,proveedores(nombre)", "activo": "eq.true", "order": "nombre.asc"}
+            params={
+                "select": "*,proveedores(nombre)",
+                "activo": "eq.true",
+                "tienda_id": f"eq.{session['tienda_id']}",
+                "order": "nombre.asc"
+            }
         )
         productos = []
         for row in res.json():
@@ -400,6 +419,7 @@ def guardar_producto():
         precio_venta  = parse_num(data.get("precio_venta", 0))
         payload = {
             "nombre":        data.get("nombre", "").strip(),
+            "tienda_id": session["tienda_id"],
             "proveedor_id":  data.get("proveedor_id") or None,
             "stock":         int(data.get("stock", 0)),
             "stock_minimo":  int(data.get("stock_minimo", 5)),
@@ -456,6 +476,7 @@ def guardar_venta():
     try:
         data = request.json
         fecha = data.get("fecha", "")
+        tienda_id: session["tienda_id"]
         nequi = parse_num(data.get("nequi", 0))
         daviplata = parse_num(data.get("daviplata", 0))
         efectivo = parse_num(data.get("efectivo", 0))
@@ -501,6 +522,7 @@ def guardar_proveedor():
         data = request.json
         payload = {
             "nombre": data.get("nombre", "").strip(),
+            "tienda_id": session["tienda_id"],
             "telefono": data.get("telefono", "").strip(),
             "categoria": data.get("categoria", "normal"),
             "activo": True,
@@ -527,6 +549,7 @@ def guardar_pedido():
     try:
         data = request.json
         fecha = data.get("fecha", "")
+        tienda_id: session["tienda_id"]
         proveedor_id = data.get("proveedor_id")
         pagado_con = data.get("pagado_con", "")
         notas = data.get("notas", "")
