@@ -174,8 +174,6 @@ def pedidos():
     return render_template("pedidos.html", pedidos=datos_pedidos, proveedores=datos_proveedores, modulo="pedidos")
 
 
-# Ruta del modulo de inventario
-@app.route("/inventario")
 # Devuelve todos los productos del inventario ordenados por nombre
 def obtener_inventario():
     try:
@@ -221,7 +219,6 @@ def inventario():
         stock_bajo=stock_bajo,
         alta_rotacion=alta_rotacion
     )
-
 # Guarda un producto nuevo en el inventario
 @app.route("/guardar-producto", methods=["POST"])
 def guardar_producto():
