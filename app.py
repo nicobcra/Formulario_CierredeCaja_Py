@@ -19,7 +19,10 @@ import requests
 import os
 
 app = Flask(__name__)
-app.secret_key = "super_secret_key"
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "controla_secret_key_2026"
+)
 
 def usuario_logueado():
     return "usuario_id" in session
@@ -277,11 +280,64 @@ def crear_cuenta():
         password = data.get("password", "")
         confirmar = data.get("confirmar", "")
 
+        # Validar campos vacíos
+        if not nombre_tienda or not nombre_admin or not telefono or not correo or not password:
+
+            return jsonify({
+                "ok": False,
+                "error": "Todos los campos son obligatorios"
+            })
+
         # Validar passwords
         if password != confirmar:
+
             return jsonify({
                 "ok": False,
                 "error": "Las contraseñas no coinciden"
+            })
+
+        # =========================
+        # VALIDAR TELÉFONO REPETIDO
+        # =========================
+
+        res_tel = requests.get(
+            f"{SUPABASE_URL}/rest/v1/usuarios",
+            headers=HEADERS,
+            params={
+                "telefono": f"eq.{telefono}",
+                "select": "id"
+            }
+        )
+
+        usuarios_tel = res_tel.json()
+
+        if len(usuarios_tel) > 0:
+
+            return jsonify({
+                "ok": False,
+                "error": "Ese número ya está registrado"
+            })
+
+        # =======================
+        # VALIDAR CORREO REPETIDO
+        # =======================
+
+        res_correo = requests.get(
+            f"{SUPABASE_URL}/rest/v1/usuarios",
+            headers=HEADERS,
+            params={
+                "correo": f"eq.{correo}",
+                "select": "id"
+            }
+        )
+
+        usuarios_correo = res_correo.json()
+
+        if len(usuarios_correo) > 0:
+
+            return jsonify({
+                "ok": False,
+                "error": "Ese correo ya está registrado"
             })
 
         # Encriptar password
@@ -299,6 +355,7 @@ def crear_cuenta():
         )
 
         if res_tienda.status_code not in (200, 201):
+
             return jsonify({
                 "ok": False,
                 "error": res_tienda.text
@@ -324,6 +381,7 @@ def crear_cuenta():
         )
 
         if res_usuario.status_code not in (200, 201):
+
             return jsonify({
                 "ok": False,
                 "error": res_usuario.text
@@ -334,10 +392,12 @@ def crear_cuenta():
         })
 
     except Exception as e:
+
         return jsonify({
             "ok": False,
             "error": str(e)
         })
+
 
 # Ruta principal - pagina de inicio con resumen del dia
 @app.route("/inicio")
@@ -358,8 +418,17 @@ def inicio():
 # Ruta del modulo de ventas diarias
 @app.route("/ventas")
 def ventas():
+
+    if "usuario_id" not in session:
+        return redirect("/login")
+
     datos = obtener_ventas()
-    return render_template("ventas.html", ventas=datos, modulo="ventas")
+
+    return render_template(
+        "ventas.html",
+        ventas=datos,
+        modulo="ventas"
+    )
 
 
 # Ruta del modulo de pedidos y proveedores
@@ -441,7 +510,7 @@ def inventario():
 
     productos = obtener_inventario(tienda_id)
 
-    proveedores = obtener_proveedores()
+    proveedores = obtener_proveedores(tienda_id)
 
     total_productos = len(productos)
 
@@ -493,36 +562,91 @@ def guardar_producto():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-# Actualiza el stock de un producto sumando o restando unidades
+# Actualiza el stock de un producto
 @app.route("/actualizar-stock", methods=["POST"])
 def actualizar_stock():
+
+    if "usuario_id" not in session:
+        return jsonify({
+            "ok": False,
+            "error": "Sesion no valida"
+        }), 401
+
     try:
-        data       = request.json
+
+        data = request.json
+
         product_id = data.get("id")
-        delta      = int(data.get("delta", 0))
-        res_get    = requests.get(
+
+        delta = int(data.get("delta", 0))
+
+        tienda_id = session["tienda_id"]
+
+        # Buscar producto SOLO de la tienda actual
+        res_get = requests.get(
             f"{SUPABASE_URL}/rest/v1/inventario",
             headers=HEADERS,
-            params={"id": f"eq.{product_id}", "select": "stock"}
+            params={
+                "id": f"eq.{product_id}",
+                "tienda_id": f"eq.{tienda_id}",
+                "select": "stock"
+            }
         )
-        stock_actual = res_get.json()[0].get("stock", 0)
-        nuevo_stock  = max(0, stock_actual + delta)
+
+        productos = res_get.json()
+
+        if len(productos) == 0:
+            return jsonify({
+                "ok": False,
+                "error": "Producto no encontrado"
+            }), 404
+
+        stock_actual = productos[0].get("stock", 0)
+
+        nuevo_stock = max(
+            0,
+            stock_actual + delta
+        )
+
         res = requests.patch(
             f"{SUPABASE_URL}/rest/v1/inventario?id=eq.{product_id}",
             headers=HEADERS,
-            json={"stock": nuevo_stock, "updated_at": "now()"}
+            json={
+                "stock": nuevo_stock
+            }
         )
+
         if res.status_code not in (200, 201, 204):
-            return jsonify({"ok": False, "error": res.text}), 500
-        return jsonify({"ok": True, "stock": nuevo_stock})
+
+            return jsonify({
+                "ok": False,
+                "error": res.text
+            }), 500
+
+        return jsonify({
+            "ok": True,
+            "stock": nuevo_stock
+        })
+
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
 
 
 # Ruta del modulo de analisis y dashboard
 @app.route("/analisis")
 def analisis():
-    return render_template("analisis.html", modulo="analisis")
+
+    if "usuario_id" not in session:
+        return redirect("/login")
+
+    return render_template(
+        "analisis.html",
+        modulo="analisis"
+    )
 
 
 # Guarda los datos del formulario de ventas en Supabase
