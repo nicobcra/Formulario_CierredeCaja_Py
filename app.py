@@ -219,6 +219,7 @@ def inventario():
         stock_bajo=stock_bajo,
         alta_rotacion=alta_rotacion
     )
+
 # Guarda un producto nuevo en el inventario
 @app.route("/guardar-producto", methods=["POST"])
 def guardar_producto():
