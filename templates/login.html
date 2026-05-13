@@ -432,19 +432,33 @@
                 </p>
             </div>
 
-            <form method="POST">
+            <form method="POST" action="/login" autocomplete="on">
 
                 <div class="input-group">
                     <label>Número de teléfono</label>
-                    <input type="text" name="telefono" placeholder="3001234567" required>
+
+                    <input
+                        type="tel"
+                        name="telefono"
+                        placeholder="3001234567"
+                        autocomplete="tel"
+                        required
+                    >
                 </div>
 
                 <div class="input-group">
                     <label>Contraseña</label>
-                    <input type="password" name="password" placeholder="••••••••" required>
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        required
+                    >
                 </div>
 
-                <button class="login-btn">
+                <button type="submit" class="login-btn">
                     Entrar al sistema
                 </button>
 

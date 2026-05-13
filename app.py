@@ -21,6 +21,9 @@ import os
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
 
+def usuario_logueado():
+    return "usuario_id" in session
+
 # Credenciales Supabase
 SUPABASE_URL = "https://brumjdswhdzkoftmxjmx.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJydW1qZHN3aGR6a29mdG14am14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjYzNDQsImV4cCI6MjA5MzE0MjM0NH0.YNypTWAsfcDxDrTmwlObEfPspnlHwyKHDx2t5yKXDEg"
@@ -51,7 +54,11 @@ def obtener_ventas():
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/ventas",
             headers=HEADERS,
-            params={"select": "*", "order": "created_at.desc"}
+            params={
+                "select": "*",
+                "tienda_id": f"eq.{session['tienda_id']}",
+                "order": "created_at.desc"
+            }
         )
         ventas = []
         for row in res.json():
@@ -156,22 +163,24 @@ def obtener_datos_inicio():
 
 
 # LOGIN
+# LOGIN
 @app.route("/", methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
 
     if request.method == "POST":
 
-        telefono = request.form.get("telefono")
-        password = request.form.get("password")
+        telefono = request.form.get("telefono", "").strip()
+        password = request.form.get("password", "")
 
         try:
 
+            # Buscar usuario por teléfono
             res = requests.get(
                 f"{SUPABASE_URL}/rest/v1/usuarios",
                 headers=HEADERS,
                 params={
                     "telefono": f"eq.{telefono}",
-                    "password": f"eq.{password}",
                     "activo": "eq.true",
                     "select": "*"
                 }
@@ -179,17 +188,32 @@ def login():
 
             usuarios = res.json()
 
+            # Validar existencia
             if len(usuarios) == 0:
                 return render_template(
                     "login.html",
-                    error="Credenciales incorrectas"
+                    error="Número o contraseña incorrectos"
                 )
 
             usuario = usuarios[0]
 
+            # Validar contraseña encriptada
+            password_correcta = check_password_hash(
+                usuario["password"],
+                password
+            )
+
+            if not password_correcta:
+                return render_template(
+                    "login.html",
+                    error="Número o contraseña incorrectos"
+                )
+
+            # Guardar sesión
             session["usuario_id"] = usuario["id"]
             session["tienda_id"] = usuario["tienda_id"]
             session["usuario_nombre"] = usuario["nombre"]
+            session["rol"] = usuario["rol"]
 
             return redirect("/inicio")
 
@@ -200,6 +224,14 @@ def login():
             )
 
     return render_template("login.html")
+
+# Cerrar sesión
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    return redirect("/login")
 
 @app.route("/registro")
 def registro():
@@ -285,8 +317,17 @@ def crear_cuenta():
 # Ruta principal - pagina de inicio con resumen del dia
 @app.route("/inicio")
 def inicio():
+
+    if not usuario_logueado():
+        return redirect("/login")
+
     datos = obtener_datos_inicio()
-    return render_template("inicio.html", modulo="inicio", datos=datos)
+
+    return render_template(
+        "inicio.html",
+        modulo="inicio",
+        datos=datos
+    )
 
 
 # Ruta del modulo de ventas diarias
