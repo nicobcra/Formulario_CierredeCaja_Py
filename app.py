@@ -249,6 +249,7 @@ def login():
             return render_template(
                 "login.html",
                 error=str(e)
+
             )
 
     return render_template("login.html")
