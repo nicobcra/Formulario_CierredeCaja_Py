@@ -349,6 +349,10 @@ def guardar_proveedor():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route("/")
+def login():
+    return render_template("login.html")
+
 
 # Guarda un pedido completo con sus items en Supabase
 @app.route("/guardar-pedido", methods=["POST"])
