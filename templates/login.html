@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Formulario Ventas</title>
+    <title>Iniciar Sesión | Controla</title>
 
     <style>
 
@@ -222,7 +222,22 @@
             transform:translateY(-2px);
         }
 
-        /* MOBILE */
+        /* LINK REGISTRO */
+
+        .register-link{
+            margin-top:24px;
+            text-align:center;
+            color:#777;
+            font-size:15px;
+        }
+
+        .register-link a{
+            color:#ff6b00;
+            text-decoration:none;
+            font-weight:700;
+        }
+
+        /* TABLET */
 
         @media(max-width:980px){
 
@@ -231,7 +246,14 @@
                 min-height:auto;
             }
 
+            .right-panel{
+                order:1;
+                width:100%;
+                padding:40px 28px;
+            }
+
             .left-panel{
+                order:2;
                 padding:40px 30px;
             }
 
@@ -246,66 +268,91 @@
             .features{
                 grid-template-columns:1fr;
             }
-
-            .right-panel{
-                width:100%;
-                padding:40px 28px;
-            }
-
-            .right-panel{
-                order:1;
-            }
-
-            .left-panel{
-                order:2;
-            }
         }
+
+        /* MOBILE */
 
         @media(max-width:600px){
 
             body{
                 padding:0;
+                background:white;
             }
 
             .login-container{
                 border-radius:0;
                 min-height:100vh;
-            }
-
-            .left-panel{
-                padding:32px 24px;
-            }
-
-            .brand h1{
-                font-size:38px;
-            }
-
-            .brand p{
-                font-size:16px;
+                box-shadow:none;
             }
 
             .right-panel{
-                padding:32px 24px 40px;
+                order:1;
+                width:100%;
+                padding:40px 24px 20px;
+                align-items:flex-start;
+            }
+
+            .login-card{
+                max-width:100%;
+            }
+
+            .login-title{
+                margin-bottom:28px;
             }
 
             .login-title h2{
-                font-size:34px;
+                font-size:32px;
+            }
+
+            .login-title p{
+                font-size:15px;
+            }
+
+            .input-group{
+                margin-bottom:18px;
             }
 
             .input-group input{
-                height:56px;
+                height:54px;
+                border-radius:16px;
+                font-size:15px;
             }
 
             .login-btn{
-                height:58px;
+                height:56px;
+                border-radius:18px;
+                font-size:16px;
+            }
+
+            .register-link{
+                font-size:14px;
+            }
+
+            .left-panel{
+                order:2;
+                min-height:180px;
+                padding:28px 24px;
+                justify-content:center;
             }
 
             .features{
                 display:none;
             }
 
-            .left-panel{
-                min-height:220px;
+            .badge{
+                font-size:12px;
+                padding:8px 14px;
+                margin-bottom:18px;
+            }
+
+            .brand h1{
+                font-size:32px;
+                margin-bottom:12px;
+            }
+
+            .brand p{
+                font-size:14px;
+                line-height:1.5;
             }
         }
 
@@ -323,16 +370,16 @@
         <div class="brand">
 
             <div class="badge">
-                SISTEMA MULTI-TIENDA
+                CONTROLA BUSINESS
             </div>
 
             <h1>
-                Formulario <span>Ventas</span>
+                Controla tu <span>negocio</span>
             </h1>
 
             <p>
-                Gestiona inventario, ventas, pedidos y cierres de caja
-                de forma inteligente desde cualquier dispositivo.
+                Administra ventas, inventario, pedidos y cierres de caja
+                desde cualquier lugar con una plataforma moderna y segura.
             </p>
 
         </div>
@@ -354,9 +401,9 @@
             </div>
 
             <div class="feature-card">
-                <h3>🏪 Multi-tienda</h3>
+                <h3>🏪 Multi-negocio</h3>
                 <p>
-                    Cada negocio tiene su propio inventario y estadísticas.
+                    Cada empresa tiene su propio inventario y estadísticas.
                 </p>
             </div>
 
@@ -388,8 +435,8 @@
             <form method="POST">
 
                 <div class="input-group">
-                    <label>Correo electrónico</label>
-                    <input type="email" name="correo" placeholder="correo@empresa.com" required>
+                    <label>Número de teléfono</label>
+                    <input type="text" name="telefono" placeholder="3001234567" required>
                 </div>
 
                 <div class="input-group">
@@ -400,6 +447,11 @@
                 <button class="login-btn">
                     Entrar al sistema
                 </button>
+
+                <div class="register-link">
+                    ¿No tienes una cuenta?
+                    <a href="/registro">Crear cuenta</a>
+                </div>
 
             </form>
 
