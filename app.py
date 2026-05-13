@@ -152,8 +152,14 @@ def obtener_datos_inicio():
         }
 
 
-# Ruta principal - pagina de inicio con resumen del dia
+# LOGIN
 @app.route("/")
+def login():
+    return render_template("login.html")
+
+
+# Ruta principal - pagina de inicio con resumen del dia
+@app.route("/inicio")
 def inicio():
     datos = obtener_datos_inicio()
     return render_template("inicio.html", modulo="inicio", datos=datos)
@@ -348,10 +354,6 @@ def guardar_proveedor():
 
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
-
-@app.route("/")
-def login():
-    return render_template("login.html")
 
 
 # Guarda un pedido completo con sus items en Supabase
