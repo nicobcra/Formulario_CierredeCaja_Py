@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta | Controla</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Segoe UI',sans-serif;
+        }
+
+        body{
+            min-height:100vh;
+            background:#f5f5f5;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:20px;
+        }
+
+        .register-container{
+            width:100%;
+            max-width:1400px;
+            min-height:850px;
+            background:white;
+            border-radius:32px;
+            overflow:hidden;
+            display:flex;
+            box-shadow:0 10px 40px rgba(0,0,0,0.08);
+        }
+
+        /* PANEL IZQUIERDO */
+
+        .left-panel{
+            flex:1;
+            background:linear-gradient(
+                135deg,
+                #141414 0%,
+                #1f1b1b 45%,
+                #5c2f12 100%
+            );
+            padding:60px;
+            position:relative;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            color:white;
+            overflow:hidden;
+        }
+
+        .left-panel::before{
+            content:"";
+            position:absolute;
+            width:420px;
+            height:420px;
+            background:rgba(255,255,255,0.04);
+            border-radius:50%;
+            top:-100px;
+            right:-120px;
+        }
+
+        .left-panel::after{
+            content:"";
+            position:absolute;
+            width:300px;
+            height:300px;
+            background:rgba(255,132,0,0.08);
+            border-radius:50%;
+            bottom:-100px;
+            left:-80px;
+        }
+
+        .brand{
+            position:relative;
+            z-index:2;
+        }
+
+        .badge{
+            display:inline-flex;
+            padding:10px 18px;
+            border-radius:999px;
+            border:1px solid rgba(255,255,255,0.15);
+            background:rgba(255,132,0,0.12);
+            color:#ff7b00;
+            font-weight:700;
+            font-size:14px;
+            margin-bottom:28px;
+            letter-spacing:1px;
+        }
+
+        .brand h1{
+            font-size:64px;
+            line-height:1.1;
+            margin-bottom:18px;
+        }
+
+        .brand h1 span{
+            color:#ff7b00;
+        }
+
+        .brand p{
+            font-size:22px;
+            color:rgba(255,255,255,0.75);
+            max-width:520px;
+            line-height:1.5;
+        }
+
+        .features{
+            position:relative;
+            z-index:2;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:18px;
+            margin-top:40px;
+        }
+
+        .feature-card{
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.06);
+            border-radius:24px;
+            padding:24px;
+            backdrop-filter:blur(12px);
+        }
+
+        .feature-card h3{
+            font-size:18px;
+            margin-bottom:8px;
+        }
+
+        .feature-card p{
+            font-size:14px;
+            color:rgba(255,255,255,0.7);
+            line-height:1.5;
+        }
+
+        /* PANEL DERECHO */
+
+        .right-panel{
+            width:560px;
+            background:#ffffff;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:50px;
+        }
+
+        .register-card{
+            width:100%;
+            max-width:420px;
+        }
+
+        .register-title{
+            margin-bottom:34px;
+        }
+
+        .register-title h2{
+            font-size:42px;
+            color:#1a1a1a;
+            margin-bottom:10px;
+        }
+
+        .register-title p{
+            color:#777;
+            font-size:16px;
+            line-height:1.5;
+        }
+
+        .input-group{
+            margin-bottom:20px;
+        }
+
+        .input-group label{
+            display:block;
+            margin-bottom:10px;
+            color:#444;
+            font-size:15px;
+            font-weight:600;
+        }
+
+        .input-group input{
+            width:100%;
+            height:58px;
+            border:none;
+            background:#f3f4f6;
+            border-radius:18px;
+            padding:0 20px;
+            font-size:16px;
+            transition:0.2s;
+            outline:none;
+        }
+
+        .input-group input:focus{
+            background:#ececec;
+        }
+
+        .double-input{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:14px;
+        }
+
+        /* CHECKBOX */
+
+        .legal-box{
+            margin-top:10px;
+            margin-bottom:28px;
+            display:flex;
+            align-items:flex-start;
+            gap:12px;
+        }
+
+        .legal-box input{
+            margin-top:4px;
+            width:18px;
+            height:18px;
+            accent-color:#ff7b00;
+            cursor:pointer;
+        }
+
+        .legal-box label{
+            font-size:14px;
+            color:#666;
+            line-height:1.5;
+        }
+
+        .legal-box a{
+            color:#ff6b00;
+            text-decoration:none;
+            font-weight:600;
+        }
+
+        /* BOTÓN */
+
+        .register-btn{
+            width:100%;
+            height:60px;
+            border:none;
+            border-radius:20px;
+            background:linear-gradient(
+                135deg,
+                #ff8a00,
+                #ff5e00
+            );
+            color:white;
+            font-size:18px;
+            font-weight:700;
+            cursor:pointer;
+            transition:0.25s;
+            box-shadow:0 10px 25px rgba(255,119,0,0.25);
+        }
+
+        .register-btn:hover{
+            transform:translateY(-2px);
+        }
+
+        /* LOGIN LINK */
+
+        .login-link{
+            margin-top:24px;
+            text-align:center;
+            color:#777;
+            font-size:15px;
+        }
+
+        .login-link a{
+            color:#ff6b00;
+            font-weight:700;
+            text-decoration:none;
+        }
+
+        /* MOBILE */
+
+        @media(max-width:1100px){
+
+            .register-container{
+                flex-direction:column;
+            }
+
+            .right-panel{
+                order:1;
+                width:100%;
+                padding:40px 28px;
+            }
+
+            .left-panel{
+                order:2;
+                padding:40px 30px;
+            }
+
+            .brand h1{
+                font-size:48px;
+            }
+
+            .brand p{
+                font-size:18px;
+            }
+
+            .features{
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media(max-width:700px){
+
+            body{
+                padding:0;
+            }
+
+            .register-container{
+                border-radius:0;
+                min-height:100vh;
+            }
+
+            .left-panel{
+                min-height:220px;
+                padding:32px 24px;
+            }
+
+            .features{
+                display:none;
+            }
+
+            .brand h1{
+                font-size:38px;
+            }
+
+            .brand p{
+                font-size:16px;
+            }
+
+            .right-panel{
+                padding:32px 24px 40px;
+            }
+
+            .register-title h2{
+                font-size:34px;
+            }
+
+            .double-input{
+                grid-template-columns:1fr;
+            }
+
+            .input-group input{
+                height:56px;
+            }
+
+            .register-btn{
+                height:58px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="register-container">
+
+    <!-- IZQUIERDA -->
+
+    <div class="left-panel">
+
+        <div class="brand">
+
+            <div class="badge">
+                CONTROLA BUSINESS
+            </div>
+
+            <h1>
+                Lleva tu negocio al siguiente <span>nivel</span>
+            </h1>
+
+            <p>
+                Crea tu cuenta y comienza a controlar ventas,
+                inventario, pedidos y cierres de caja desde cualquier lugar.
+            </p>
+
+        </div>
+
+        <div class="features">
+
+            <div class="feature-card">
+                <h3>📦 Inventario inteligente</h3>
+                <p>
+                    Actualización automática de stock y control de productos.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>💰 Ventas en tiempo real</h3>
+                <p>
+                    Registra ventas y métodos de pago fácilmente.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>👥 Multiusuarios</h3>
+                <p>
+                    Administra empleados, vendedores y permisos.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>📊 Reportes y análisis</h3>
+                <p>
+                    Visualiza métricas importantes para tu negocio.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- DERECHA -->
+
+    <div class="right-panel">
+
+        <div class="register-card">
+
+            <div class="register-title">
+                <h2>Crear cuenta</h2>
+
+                <p>
+                    Registra tu negocio y comienza a usar Controla.
+                </p>
+            </div>
+
+            <form id="registroForm">
+
+                <div class="input-group">
+                    <label>Nombre de la tienda</label>
+                    <input type="text" id="nombre_tienda" placeholder="Ej: Tienda Dilan" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Nombre del administrador</label>
+                    <input type="text" id="nombre_admin" placeholder="Nombre completo" required>
+                </div>
+
+                <div class="double-input">
+
+                    <div class="input-group">
+                        <label>Número de teléfono</label>
+                        <input type="text" id="telefono" placeholder="3001234567" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Correo electrónico</label>
+                        <input type="email" id="correo" placeholder="correo@empresa.com" required>
+                    </div>
+
+                </div>
+
+                <div class="double-input">
+
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Confirmar contraseña</label>
+                        <input type="password" id="confirmar" placeholder="••••••••" required>
+                    </div>
+
+                </div>
+
+                <div class="legal-box">
+
+                    <input type="checkbox" id="legal" required>
+
+                    <label for="legal">
+                        Acepto el tratamiento de datos personales de acuerdo
+                        con la Ley 1581 de 2012 y la política de privacidad de
+                        <a href="#">Controla</a>.
+                    </label>
+
+                </div>
+
+                <button type="submit" class="register-btn">
+                    Crear cuenta
+                </button>
+
+            </form>
+
+            <div class="login-link">
+                ¿Ya tienes una cuenta?
+                <a href="/">Iniciar sesión</a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const form = document.getElementById("registroForm");
+
+    form.addEventListener("submit", async (e) => {
+
+        e.preventDefault();
+
+        const password = document.getElementById("password").value;
+        const confirmar = document.getElementById("confirmar").value;
+
+        if(password !== confirmar){
+            alert("Las contraseñas no coinciden");
+            return;
+        }
+
+        const data = {
+            nombre_tienda: document.getElementById("nombre_tienda").value,
+            nombre_admin: document.getElementById("nombre_admin").value,
+            telefono: document.getElementById("telefono").value,
+            correo: document.getElementById("correo").value,
+            password: password,
+            confirmar: confirmar
+        };
+
+        try{
+
+            const res = await fetch("/crear-cuenta", {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+
+            if(result.ok){
+
+                alert("Cuenta creada correctamente");
+
+                window.location.href = "/";
+
+            }else{
+                alert(result.error || "Error creando cuenta");
+            }
+
+        }catch(error){
+            alert("Error del servidor");
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

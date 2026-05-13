@@ -2,8 +2,10 @@
 # Nicolas Becerra - 30/04/26
 # Modulo Web - Flask backend con Supabase - Version 2.0
 
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, jsonify, redirect, session
 from datetime import date, timedelta, datetime, timezone
+
 
 # Timezone Colombia (UTC-5, sin horario de verano)
 COL_TZ = timezone(timedelta(hours=-5))
@@ -199,6 +201,82 @@ def login():
 
     return render_template("login.html")
 
+# Ruta de Registro
+@app.route("/crear-cuenta", methods=["POST"])
+def crear_cuenta():
+
+    try:
+
+        data = request.json
+
+        nombre_tienda = data.get("nombre_tienda", "").strip()
+        nombre_admin = data.get("nombre_admin", "").strip()
+        telefono = data.get("telefono", "").strip()
+        correo = data.get("correo", "").strip().lower()
+        password = data.get("password", "")
+        confirmar = data.get("confirmar", "")
+
+        # Validar passwords
+        if password != confirmar:
+            return jsonify({
+                "ok": False,
+                "error": "Las contraseñas no coinciden"
+            })
+
+        # Encriptar password
+        password_hash = generate_password_hash(password)
+
+        # Crear tienda
+        tienda_payload = {
+            "nombre": nombre_tienda
+        }
+
+        res_tienda = requests.post(
+            f"{SUPABASE_URL}/rest/v1/tiendas",
+            headers=HEADERS,
+            json=tienda_payload
+        )
+
+        if res_tienda.status_code not in (200, 201):
+            return jsonify({
+                "ok": False,
+                "error": res_tienda.text
+            })
+
+        tienda = res_tienda.json()[0]
+
+        # Crear usuario admin
+        usuario_payload = {
+            "nombre": nombre_admin,
+            "telefono": telefono,
+            "correo": correo,
+            "password": password_hash,
+            "rol": "admin",
+            "tienda_id": tienda["id"],
+            "activo": True
+        }
+
+        res_usuario = requests.post(
+            f"{SUPABASE_URL}/rest/v1/usuarios",
+            headers=HEADERS,
+            json=usuario_payload
+        )
+
+        if res_usuario.status_code not in (200, 201):
+            return jsonify({
+                "ok": False,
+                "error": res_usuario.text
+            })
+
+        return jsonify({
+            "ok": True
+        })
+
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        })
 
 # Ruta principal - pagina de inicio con resumen del dia
 @app.route("/inicio")
