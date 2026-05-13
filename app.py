@@ -75,47 +75,58 @@ def obtener_ventas():
         return []
 
 
-# Devuelve todos los proveedores activos ordenados por nombre
-def obtener_proveedores():
+# Devuelve todos los proveedores activos de la tienda actual
+def obtener_proveedores(tienda_id):
+
     try:
+
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/proveedores",
             headers=HEADERS,
             params={
                 "select": "*",
+                "tienda_id": f"eq.{tienda_id}",
                 "activo": "eq.true",
-                "tienda_id": f"eq.{session['tienda_id']}",
                 "order": "nombre.asc"
             }
         )
+
         return res.json()
+
     except Exception:
         return []
 
+# Devuelve todos los pedidos de la tienda actual
+def obtener_pedidos(tienda_id):
 
-# Devuelve todos los pedidos con su proveedor asociado
-def obtener_pedidos():
     try:
+
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/pedidos",
             headers=HEADERS,
             params={
                 "select": "*,proveedores(nombre)",
-                "tienda_id": f"eq.{session['tienda_id']}",
+                "tienda_id": f"eq.{tienda_id}",
                 "order": "created_at.desc"
             }
         )
+
         pedidos = []
+
         for row in res.json():
+
             pedidos.append({
                 "id": row.get("id"),
                 "fecha": row.get("fecha", ""),
-                "proveedor": row.get("proveedores", {}).get("nombre", "") if row.get("proveedores") else "",
+                "proveedor": row.get("proveedores", {}).get("nombre", "")
+                    if row.get("proveedores") else "",
                 "total": formatear_cop(row.get("total", 0)),
                 "pagado_con": row.get("pagado_con", ""),
                 "notas": row.get("notas", ""),
             })
+
         return pedidos
+
     except Exception:
         return []
 
@@ -354,54 +365,98 @@ def ventas():
 # Ruta del modulo de pedidos y proveedores
 @app.route("/pedidos")
 def pedidos():
-    datos_pedidos = obtener_pedidos()
-    datos_proveedores = obtener_proveedores()
-    return render_template("pedidos.html", pedidos=datos_pedidos, proveedores=datos_proveedores, modulo="pedidos")
+
+    if "usuario_id" not in session:
+        return redirect("/")
+
+    tienda_id = session["tienda_id"]
+
+    datos_pedidos = obtener_pedidos(tienda_id)
+
+    datos_proveedores = obtener_proveedores(tienda_id)
+
+    return render_template(
+        "pedidos.html",
+        pedidos=datos_pedidos,
+        proveedores=datos_proveedores,
+        modulo="pedidos"
+    )
 
 
-# Devuelve todos los productos del inventario ordenados por nombre
-def obtener_inventario():
+# Devuelve todos los productos del inventario de la tienda actual
+def obtener_inventario(tienda_id):
+
     try:
+
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/inventario",
             headers=HEADERS,
             params={
                 "select": "*,proveedores(nombre)",
+                "tienda_id": f"eq.{tienda_id}",
                 "activo": "eq.true",
-                "tienda_id": f"eq.{session['tienda_id']}",
                 "order": "nombre.asc"
             }
         )
+
         productos = []
+
         for row in res.json():
+
             precio_compra = row.get("precio_compra", 0) or 0
-            precio_venta  = row.get("precio_venta", 0)  or 0
-            margen = round(((precio_venta - precio_compra) / precio_compra) * 100) if precio_compra > 0 else 0
-            stock  = row.get("stock", 0) or 0
+            precio_venta  = row.get("precio_venta", 0) or 0
+
+            margen = round(
+                ((precio_venta - precio_compra) / precio_compra) * 100
+            ) if precio_compra > 0 else 0
+
+            stock = row.get("stock", 0) or 0
+
             productos.append({
-                "id":            row.get("id"),
-                "nombre":        row.get("nombre", ""),
-                "proveedor":     row.get("proveedores", {}).get("nombre", "") if row.get("proveedores") else "",
-                "stock":         stock,
-                "stock_minimo":  row.get("stock_minimo", 5),
+                "id": row.get("id"),
+                "nombre": row.get("nombre", ""),
+                "proveedor": row.get("proveedores", {}).get("nombre", "")
+                    if row.get("proveedores") else "",
+                "stock": stock,
+                "stock_minimo": row.get("stock_minimo", 5),
                 "precio_compra": formatear_cop(precio_compra),
-                "precio_venta":  formatear_cop(precio_venta),
-                "margen":        margen,
-                "stock_bajo":    stock <= row.get("stock_minimo", 5),
+                "precio_venta": formatear_cop(precio_venta),
+                "margen": margen,
+                "stock_bajo": stock <= row.get("stock_minimo", 5),
             })
+
         return productos
+
     except Exception:
         return []
 
 # Ruta del modulo de inventario
 @app.route("/inventario")
 def inventario():
-    productos         = obtener_inventario()
-    proveedores       = obtener_proveedores()
-    total_productos   = len(productos)
-    stock_bajo        = len([p for p in productos if p["stock_bajo"]])
-    alta_rotacion     = len([p for p in productos if p["margen"] >= 25])
-    return render_template("inventario.html",
+
+    if "usuario_id" not in session:
+        return redirect("/")
+
+    tienda_id = session["tienda_id"]
+
+    productos = obtener_inventario(tienda_id)
+
+    proveedores = obtener_proveedores()
+
+    total_productos = len(productos)
+
+    stock_bajo = len([
+        p for p in productos
+        if p["stock_bajo"]
+    ])
+
+    alta_rotacion = len([
+        p for p in productos
+        if p["margen"] >= 25
+    ])
+
+    return render_template(
+        "inventario.html",
         modulo="inventario",
         productos=productos,
         proveedores=proveedores,
@@ -471,20 +526,32 @@ def analisis():
 
 
 # Guarda los datos del formulario de ventas en Supabase
+# Guarda los datos del formulario de ventas en Supabase
 @app.route("/guardar-venta", methods=["POST"])
 def guardar_venta():
+
+    if "usuario_id" not in session:
+        return jsonify({
+            "ok": False,
+            "error": "Sesión no válida"
+        }), 401
+
     try:
+
         data = request.json
+
         fecha = data.get("fecha", "")
-        tienda_id: session["tienda_id"]
+
         nequi = parse_num(data.get("nequi", 0))
         daviplata = parse_num(data.get("daviplata", 0))
         efectivo = parse_num(data.get("efectivo", 0))
         fiado = parse_num(data.get("fiado", 0))
+
         total = nequi + daviplata + efectivo + fiado
 
         payload = {
             "fecha": fecha,
+            "tienda_id": session["tienda_id"],
             "nequi": nequi,
             "daviplata": daviplata,
             "efectivo": efectivo,
@@ -499,7 +566,11 @@ def guardar_venta():
         )
 
         if res.status_code not in (200, 201):
-            return jsonify({"ok": False, "error": res.text}), 500
+
+            return jsonify({
+                "ok": False,
+                "error": res.text
+            }), 500
 
         return jsonify({
             "ok": True,
@@ -512,7 +583,11 @@ def guardar_venta():
         })
 
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
 
 
 # Guarda un proveedor nuevo en Supabase
@@ -546,19 +621,34 @@ def guardar_proveedor():
 # Guarda un pedido completo con sus items en Supabase
 @app.route("/guardar-pedido", methods=["POST"])
 def guardar_pedido():
+
+    if "usuario_id" not in session:
+        return jsonify({
+            "ok": False,
+            "error": "Sesion no valida"
+        }), 401
+
     try:
+
         data = request.json
+
         fecha = data.get("fecha", "")
-        tienda_id: session["tienda_id"]
+        tienda_id = session["tienda_id"]
+
         proveedor_id = data.get("proveedor_id")
         pagado_con = data.get("pagado_con", "")
         notas = data.get("notas", "")
         items = data.get("items", [])
-        total = sum(parse_num(item.get("subtotal", 0)) for item in items)
+
+        total = sum(
+            parse_num(item.get("subtotal", 0))
+            for item in items
+        )
 
         # Guardar cabecera del pedido
         pedido_payload = {
             "fecha": fecha,
+            "tienda_id": tienda_id,
             "proveedor_id": proveedor_id,
             "total": total,
             "pagado_con": pagado_con,
@@ -572,17 +662,36 @@ def guardar_pedido():
         )
 
         if res_pedido.status_code not in (200, 201):
-            return jsonify({"ok": False, "error": res_pedido.text}), 500
+            return jsonify({
+                "ok": False,
+                "error": res_pedido.text
+            }), 500
 
         pedido_id = res_pedido.json()[0]["id"]
 
         # Guardar cada item del pedido
         for item in items:
-            precio_compra = parse_num(item.get("precio_compra", 0))
-            iva = parse_num(item.get("iva", 0))
-            precio_compra_final = parse_num(item.get("precio_compra_final", 0))
-            precio_venta = parse_num(item.get("precio_venta", 0))
-            cantidad = int(item.get("cantidad", 1))
+
+            precio_compra = parse_num(
+                item.get("precio_compra", 0)
+            )
+
+            iva = parse_num(
+                item.get("iva", 0)
+            )
+
+            precio_compra_final = parse_num(
+                item.get("precio_compra_final", 0)
+            )
+
+            precio_venta = parse_num(
+                item.get("precio_venta", 0)
+            )
+
+            cantidad = int(
+                item.get("cantidad", 1)
+            )
+
             subtotal = precio_compra_final * cantidad
 
             item_payload = {
@@ -602,29 +711,64 @@ def guardar_pedido():
                 json=item_payload
             )
 
-            # Actualizar stock del inventario por cada item del pedido
-            for item in items:
-                nombre = item.get("producto_nombre", "").strip().lower()
-                cantidad = int(item.get("cantidad", 1))
-                res_inv = requests.get(
-                    f"{SUPABASE_URL}/rest/v1/inventario",
-                    headers=HEADERS,
-                    params={"select": "id,stock", "activo": "eq.true"}
-                )
-                match = next((p for p in res_inv.json() if p.get("id") and
-                              nombre in item.get("producto_nombre", "").lower()), None)
-                if match:
-                    nuevo_stock = match.get("stock", 0) + cantidad
-                    requests.patch(
-                        f"{SUPABASE_URL}/rest/v1/inventario?id=eq.{match['id']}",
-                        headers=HEADERS,
-                        json={"stock": nuevo_stock, "updated_at": "now()"}
-                    )
+        # Actualizar stock del inventario
+        for item in items:
 
-            return jsonify({"ok": True, "pedido_id": pedido_id, "total": formatear_cop(total)})
+            nombre = item.get(
+                "producto_nombre",
+                ""
+            ).strip().lower()
+
+            cantidad = int(
+                item.get("cantidad", 1)
+            )
+
+            res_inv = requests.get(
+                f"{SUPABASE_URL}/rest/v1/inventario",
+                headers=HEADERS,
+                params={
+                    "select": "id,stock,nombre",
+                    "tienda_id": f"eq.{tienda_id}",
+                    "activo": "eq.true"
+                }
+            )
+
+            inventario = res_inv.json()
+
+            match = next(
+                (
+                    p for p in inventario
+                    if p.get("nombre", "").strip().lower() == nombre
+                ),
+                None
+            )
+
+            if match:
+
+                nuevo_stock = (
+                    match.get("stock", 0) + cantidad
+                )
+
+                requests.patch(
+                    f"{SUPABASE_URL}/rest/v1/inventario?id=eq.{match['id']}",
+                    headers=HEADERS,
+                    json={
+                        "stock": nuevo_stock
+                    }
+                )
+
+        return jsonify({
+            "ok": True,
+            "pedido_id": pedido_id,
+            "total": formatear_cop(total)
+        })
 
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
 
 
 if __name__ == "__main__":
