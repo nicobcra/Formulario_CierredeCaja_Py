@@ -32,7 +32,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # Refrescar sesión automáticamente
-app.config["SESSION_REFRESH_EACH_REQUEST"] = False
+app.config["SESSION_REFRESH_EACH_REQUEST"] = True
 
 # SOLO activar esto en producción HTTPS
 # app.config["SESSION_COOKIE_SECURE"] = True
@@ -463,7 +463,7 @@ def crear_cuenta():
 @app.route("/inicio")
 def inicio():
     if "usuario_id" not in session:
-        return redirect("/inicio")
+        return redirect("/login")
 
     tienda_id = session.get("tienda_id")
 
