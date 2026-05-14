@@ -37,14 +37,11 @@ app.config["SESSION_COOKIE_SAMESITE"]      = "None" if IS_PROD else "Lax"
 app.config["SESSION_COOKIE_SECURE"]        = IS_PROD
 
 @app.context_processor
-def inject_user_data():
-
+def inject_session_vars():
     return {
-        "rol": session.get("rol", ""),
+        "rol":            session.get("rol", ""),
         "usuario_nombre": session.get("usuario_nombre", ""),
-        "tienda": {
-            "nombre": session.get("tienda_nombre", "Mi tienda")
-        }
+        "tienda_id":      session.get("tienda_id"),
     }
 
 # ─────────────────────────────────────────
@@ -59,7 +56,6 @@ HEADERS = {
     "Content-Type":  "application/json",
     "Prefer":        "return=representation",
 }
-
 
 # ─────────────────────────────────────────
 # DECORADORES DE SEGURIDAD
