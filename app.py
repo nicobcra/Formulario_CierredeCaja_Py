@@ -462,6 +462,8 @@ def crear_cuenta():
 @app.route("/inicio")
 def inicio():
 
+    print("SESSION:", dict(session))
+
     if not usuario_logueado():
         return redirect("/login")
 
