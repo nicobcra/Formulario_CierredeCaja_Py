@@ -24,6 +24,21 @@ app.secret_key = os.environ.get(
     "controla_secret_key_2026"
 )
 
+# Mantener sesión activa
+app.config["SESSION_PERMANENT"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+
+# Cookies seguras
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# SOLO activar esto en producción HTTPS
+# app.config["SESSION_COOKIE_SECURE"] = True
+
+
+
+
+
 def usuario_logueado():
     return "usuario_id" in session
 
@@ -238,6 +253,8 @@ def login():
                 )
 
             # Guardar sesión
+            session.permanent = True
+
             session["usuario_id"] = usuario["id"]
             session["tienda_id"] = usuario["tienda_id"]
             session["usuario_nombre"] = usuario["nombre"]
@@ -926,4 +943,4 @@ def guardar_pedido():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
