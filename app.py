@@ -458,10 +458,10 @@ def crear_cuenta():
             "error": str(e)
         })
 
+print("SESSION:", dict(session))
 
 # Ruta principal - pagina de inicio con resumen del dia
 @app.route("/inicio")
-print("SESSION:", dict(session))
 def inicio():
 
     if not usuario_logueado():
