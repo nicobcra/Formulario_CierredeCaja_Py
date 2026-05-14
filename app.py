@@ -519,7 +519,7 @@ def ventas():
 def pedidos():
 
     if "usuario_id" not in session:
-        return redirect("/")
+        return redirect("/login")
 
     tienda_id = session["tienda_id"]
 
@@ -587,7 +587,7 @@ def obtener_inventario(tienda_id):
 def inventario():
 
     if "usuario_id" not in session:
-        return redirect("/")
+        return redirect("/login")
 
     tienda_id = session["tienda_id"]
 
