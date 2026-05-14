@@ -1,6 +1,6 @@
 # Proyecto N-1 Automatizacion de Formularios a base de datos Excel
 # Nicolas Becerra - 30/04/26
-# Modulo Web - Flask backend con Supabase - Version 2.2
+# Modulo Web - Flask backend con Supabase - Version 2.3
 # Seguridad: separacion de tiendas + sistema de roles
 
 import os
@@ -19,6 +19,7 @@ COL_TZ = timezone(timedelta(hours=-5))
 
 def hoy_colombia():
     return datetime.now(COL_TZ).date()
+
 
 # ─────────────────────────────────────────
 # APP
@@ -43,6 +44,7 @@ def inject_session_vars():
         "tienda_id":      session.get("tienda_id"),
     }
 
+
 # ─────────────────────────────────────────
 # SUPABASE
 # ─────────────────────────────────────────
@@ -56,11 +58,11 @@ HEADERS = {
     "Prefer":        "return=representation",
 }
 
+
 # ─────────────────────────────────────────
 # DECORADORES DE SEGURIDAD
 # ─────────────────────────────────────────
 def login_requerido(f):
-    """Verifica que el usuario esté logueado."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         if "usuario_id" not in session:
@@ -72,7 +74,6 @@ def login_requerido(f):
 
 
 def rol_requerido(*roles):
-    """Verifica que el rol del usuario esté en la lista permitida."""
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -119,7 +120,6 @@ def sb_patch(tabla, filtro, payload):
 
 
 def verificar_ownership(tabla, id_valor, tienda_id):
-    """Verifica que un registro pertenezca a la tienda actual."""
     rows = sb_get(tabla, {"id": f"eq.{id_valor}", "tienda_id": f"eq.{tienda_id}", "select": "id"})
     return len(rows) > 0
 
@@ -139,7 +139,8 @@ def parse_num(texto):
 # ─────────────────────────────────────────
 # QUERIES
 # ─────────────────────────────────────────
-def obtener_ventas(tienda_id):
+def obtener_cierres(tienda_id):
+    """Historial de cierres de caja (tabla ventas)."""
     rows = sb_get("ventas", {
         "select":    "*",
         "tienda_id": f"eq.{tienda_id}",
@@ -155,8 +156,8 @@ def obtener_ventas(tienda_id):
     } for r in rows]
 
 
-def obtener_venta_hoy(tienda_id):
-    """Para vendedor: solo la venta del día actual."""
+def obtener_cierre_hoy(tienda_id):
+    """Para vendedor: solo el cierre del día actual."""
     hoy  = str(hoy_colombia())
     rows = sb_get("ventas", {
         "select":    "*",
@@ -202,10 +203,6 @@ def obtener_pedidos(tienda_id):
 
 
 def obtener_inventario(tienda_id, solo_basico=False):
-    """
-    solo_basico=True  → vendedor: nombre y stock, sin precios ni margen.
-    solo_basico=False → admin/dueno: info completa.
-    """
     select = "id,nombre,stock,stock_minimo" if solo_basico else "*,proveedores(nombre)"
     rows   = sb_get("inventario", {
         "select":    select,
@@ -216,11 +213,13 @@ def obtener_inventario(tienda_id, solo_basico=False):
 
     if solo_basico:
         return [{
-            "id":           r.get("id"),
-            "nombre":       r.get("nombre", ""),
-            "stock":        r.get("stock", 0) or 0,
-            "stock_minimo": r.get("stock_minimo", 5),
-            "stock_bajo":   (r.get("stock", 0) or 0) <= r.get("stock_minimo", 5),
+            "id":              r.get("id"),
+            "nombre":          r.get("nombre", ""),
+            "stock":           r.get("stock", 0) or 0,
+            "stock_minimo":    r.get("stock_minimo", 5),
+            "precio_venta":    formatear_cop(0),
+            "precio_venta_raw": 0,
+            "stock_bajo":      (r.get("stock", 0) or 0) <= r.get("stock_minimo", 5),
         } for r in rows]
 
     productos = []
@@ -230,16 +229,16 @@ def obtener_inventario(tienda_id, solo_basico=False):
         stock = r.get("stock", 0) or 0
         sm    = r.get("stock_minimo", 5)
         productos.append({
-            "id":            r.get("id"),
-            "nombre":        r.get("nombre", ""),
-            "proveedor":     (r.get("proveedores") or {}).get("nombre", ""),
-            "stock":         stock,
-            "stock_minimo":  sm,
-            "precio_compra": formatear_cop(pc),
-            "precio_venta":  formatear_cop(pv),
+            "id":               r.get("id"),
+            "nombre":           r.get("nombre", ""),
+            "proveedor":        (r.get("proveedores") or {}).get("nombre", ""),
+            "stock":            stock,
+            "stock_minimo":     sm,
+            "precio_compra":    formatear_cop(pc),
+            "precio_venta":     formatear_cop(pv),
             "precio_venta_raw": pv,
-            "margen":        round(((pv - pc) / pc) * 100) if pc > 0 else 0,
-            "stock_bajo":    stock <= sm,
+            "margen":           round(((pv - pc) / pc) * 100) if pc > 0 else 0,
+            "stock_bajo":       stock <= sm,
         })
     return productos
 
@@ -324,8 +323,6 @@ def registro():
     return render_template("registro.html")
 
 
-
-
 @app.route("/crear-cuenta", methods=["POST"])
 def crear_cuenta():
     try:
@@ -350,7 +347,6 @@ def crear_cuenta():
         if not ok:
             return jsonify({"ok": False, "error": tienda})
 
-        # El que crea la cuenta siempre es dueño
         ok, usuario = sb_post("usuarios", {
             "nombre":    nombre_admin,
             "telefono":  telefono,
@@ -369,7 +365,7 @@ def crear_cuenta():
 
 
 # ─────────────────────────────────────────
-# RUTAS: GESTIÓN DE USUARIOS
+# RUTAS: USUARIOS
 # ─────────────────────────────────────────
 @app.route("/usuarios")
 @rol_requerido("dueno", "admin")
@@ -386,13 +382,11 @@ def usuarios():
 @app.route("/crear-usuario", methods=["POST"])
 @rol_requerido("dueno", "admin")
 def crear_usuario():
-    """Admin/dueño crean usuarios para su misma tienda."""
     try:
         data      = request.json
         tienda_id = session["tienda_id"]
         rol       = data.get("rol", "vendedor")
 
-        # Admin no puede crear dueños ni otros admins, solo vendedores
         if session["rol"] == "admin" and rol in ("dueno", "admin"):
             return jsonify({"ok": False, "error": "No tienes permiso para crear ese rol"}), 403
 
@@ -413,7 +407,7 @@ def crear_usuario():
             "correo":    correo,
             "password":  generate_password_hash(password),
             "rol":       rol,
-            "tienda_id": tienda_id,  # Siempre la tienda del admin en sesión
+            "tienda_id": tienda_id,
             "activo":    True,
         })
         if not ok:
@@ -435,7 +429,6 @@ def desactivar_usuario():
         if str(usuario_id) == str(session["usuario_id"]):
             return jsonify({"ok": False, "error": "No puedes desactivarte a ti mismo"}), 400
 
-        # Verificar que el usuario pertenece a esta tienda
         if not verificar_ownership("usuarios", usuario_id, tienda_id):
             return jsonify({"ok": False, "error": "Usuario no encontrado"}), 404
 
@@ -462,14 +455,13 @@ def inicio():
         modulo="inicio",
         datos=datos,
         tienda=tienda,
-        usuario_nombre=session.get("usuario_nombre", ""),
-        rol=session.get("rol", ""),
     )
 
 
 @app.route("/ventas")
 @login_requerido
 def ventas():
+    """Nueva sección: punto de venta / facturación."""
     tienda_id   = session["tienda_id"]
     rol         = session.get("rol", "")
     solo_basico = rol == "vendedor"
@@ -479,24 +471,26 @@ def ventas():
         productos=productos,
     )
 
+
+@app.route("/cierre")
 @login_requerido
-def ventas():
+def cierre():
+    """Cierre de caja (lo que antes era /ventas)."""
     tienda_id = session["tienda_id"]
     rol       = session.get("rol", "")
 
-    # Vendedor solo ve la venta de hoy (cierre de caja)
     if rol == "vendedor":
-        venta_hoy = obtener_venta_hoy(tienda_id)
+        cierre_hoy = obtener_cierre_hoy(tienda_id)
         return render_template("cierre.html",
-            ventas=[venta_hoy] if venta_hoy else [],
+            ventas=[cierre_hoy] if cierre_hoy else [],
             solo_hoy=True,
-            modulo="ventas",
+            modulo="cierre",
         )
 
     return render_template("cierre.html",
-        ventas=obtener_ventas(tienda_id),
+        ventas=obtener_cierres(tienda_id),
         solo_hoy=False,
-        modulo="ventas",
+        modulo="cierre",
     )
 
 
@@ -535,9 +529,14 @@ def inventario():
 def analisis():
     return render_template("analisis.html", modulo="analisis")
 
+
+# ─────────────────────────────────────────
+# RUTAS: API — VENTAS POS
+# ─────────────────────────────────────────
 @app.route("/registrar-venta", methods=["POST"])
 @login_requerido
 def registrar_venta():
+    """Registra una venta del POS en ventas_productos + venta_items y descuenta stock."""
     try:
         data      = request.json
         tienda_id = session["tienda_id"]
@@ -546,10 +545,10 @@ def registrar_venta():
         items     = data.get("items", [])
         ahora     = datetime.now(COL_TZ)
 
-        # 1. Cabecera en ventas_productos
+        # 1. Cabecera
         ok, res = sb_post("ventas_productos", {
             "tienda_id":   tienda_id,
-            "metodo_pago": metodo,   # ← metodo_pago, no metodo
+            "metodo_pago": metodo,
             "total":       total,
         })
         if not ok:
@@ -557,7 +556,7 @@ def registrar_venta():
 
         venta_id = res[0]["id"]
 
-        # 2. Items + descontar stock
+        # 2. Traer inventario una sola vez
         inventario = sb_get("inventario", {
             "select":    "id,stock",
             "tienda_id": f"eq.{tienda_id}",
@@ -565,13 +564,14 @@ def registrar_venta():
         })
         inv_map = {p["id"]: p for p in inventario}
 
+        # 3. Guardar items y descontar stock
         for item in items:
             sb_post("venta_items", {
-                "venta_id":       venta_id,
-                "producto_id":    item.get("producto_id"),
-                "cantidad":       item.get("cantidad"),
-                "precio_unitario": item.get("precio"),   # ← precio_unitario
-                "subtotal":       item.get("subtotal"),
+                "venta_id":        venta_id,
+                "producto_id":     item.get("producto_id"),
+                "cantidad":        item.get("cantidad"),
+                "precio_unitario": item.get("precio"),
+                "subtotal":        item.get("subtotal"),
             })
             prod = inv_map.get(item.get("producto_id"))
             if prod:
@@ -591,11 +591,12 @@ def registrar_venta():
 
 
 # ─────────────────────────────────────────
-# RUTAS: API — VENTAS (todos los roles)
+# RUTAS: API — CIERRE DE CAJA
 # ─────────────────────────────────────────
 @app.route("/guardar-venta", methods=["POST"])
 @login_requerido
 def guardar_venta():
+    """Guarda el cierre de caja diario en la tabla ventas."""
     try:
         data      = request.json
         tienda_id = session["tienda_id"]
@@ -606,7 +607,6 @@ def guardar_venta():
         total     = nequi + daviplata + efectivo + fiado
         fecha     = data.get("fecha", "")
 
-        # Vendedor solo puede registrar ventas de hoy
         if session.get("rol") == "vendedor" and fecha != str(hoy_colombia()):
             return jsonify({"ok": False, "error": "Solo puedes registrar ventas del día de hoy"}), 403
 
@@ -660,7 +660,6 @@ def guardar_producto():
         tienda_id    = session["tienda_id"]
         proveedor_id = data.get("proveedor_id")
 
-        # Verificar que el proveedor pertenece a esta tienda
         if proveedor_id and not verificar_ownership("proveedores", proveedor_id, tienda_id):
             return jsonify({"ok": False, "error": "Proveedor no válido"}), 403
 
@@ -717,11 +716,9 @@ def guardar_pedido():
         total        = sum(parse_num(i.get("subtotal", 0)) for i in items)
         proveedor_id = data.get("proveedor_id")
 
-        # Verificar que el proveedor pertenece a esta tienda
         if proveedor_id and not verificar_ownership("proveedores", proveedor_id, tienda_id):
             return jsonify({"ok": False, "error": "Proveedor no válido"}), 403
 
-        # 1. Cabecera
         ok, pedido = sb_post("pedidos", {
             "fecha":        data.get("fecha", ""),
             "tienda_id":    tienda_id,
@@ -735,7 +732,6 @@ def guardar_pedido():
 
         pedido_id = pedido[0]["id"]
 
-        # 2. Items
         for item in items:
             pc_final = parse_num(item.get("precio_compra_final", 0))
             cantidad = int(item.get("cantidad", 1))
@@ -750,7 +746,6 @@ def guardar_pedido():
                 "subtotal":            pc_final * cantidad,
             })
 
-        # 3. Actualizar stock — una sola consulta
         inventario = sb_get("inventario", {
             "select":    "id,stock,nombre",
             "tienda_id": f"eq.{tienda_id}",
