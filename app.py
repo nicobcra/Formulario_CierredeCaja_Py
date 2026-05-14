@@ -462,10 +462,8 @@ def crear_cuenta():
 # Ruta principal - pagina de inicio con resumen del dia
 @app.route("/inicio")
 def inicio():
-
-    if "usuario_id" not in session or "tienda_id" not in session:
-        session.clear()
-        return redirect("/login")
+    if "usuario_id" not in session:
+        return redirect("/inicio")
 
     tienda_id = session.get("tienda_id")
 
