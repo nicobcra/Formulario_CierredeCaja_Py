@@ -20,11 +20,15 @@ import os
 
 app = Flask(__name__)
 
-app.config["SECRET_KEY"] = "controla_super_secret_key_estable_2026"
+aIS_PROD = os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")
 
-# Mantener sesión activa
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev_local_key")
 app.config["SESSION_PERMANENT"] = True
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_REFRESH_EACH_REQUEST"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "None" if IS_PROD else "Lax"
+app.config["SESSION_COOKIE_SECURE"] = True if IS_PROD else False
 
 
 def usuario_logueado():
