@@ -19,10 +19,7 @@ import requests
 import os
 
 app = Flask(__name__)
-app.secret_key = os.environ.get(
-    "SECRET_KEY",
-    "controla_secret_key_2026"
-)
+app.config["SECRET_KEY"] = "controla_super_secret_key_estable_2026"
 
 # Mantener sesión activa
 app.config["SESSION_PERMANENT"] = True
@@ -31,6 +28,7 @@ app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 # Cookies seguras
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_REFRESH_EACH_REQUEST"] = True
 
 # SOLO activar esto en producción HTTPS
 # app.config["SESSION_COOKIE_SECURE"] = True
@@ -302,6 +300,8 @@ def login():
             session["usuario_nombre"] = usuario["nombre"]
             session["rol"] = usuario["rol"]
 
+            session.modified = True
+
             return redirect("/inicio")
 
         except Exception as e:
@@ -461,6 +461,7 @@ def crear_cuenta():
 
 # Ruta principal - pagina de inicio con resumen del dia
 @app.route("/inicio")
+print("SESSION:", dict(session))
 def inicio():
 
     if not usuario_logueado():
