@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Tienda Dilan</title>
+  <title>{{ tienda.nombre if tienda else 'Controla' }}</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    /* Variables globales de diseño */
     :root {
       --naranja:        #F97316;
       --naranja-deep:   #EA580C;
       --naranja-glow:   rgba(249,115,22,0.18);
-      --naranja-pale: #f6f0e9;
+      --naranja-pale:   #f6f0e9;
       --gris-900:       #111827;
       --gris-700:       #374151;
       --gris-500:       #6B7280;
@@ -31,7 +30,6 @@
       --font-body:      'DM Sans', sans-serif;
     }
 
-    /* Reset base */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
 
@@ -43,7 +41,6 @@
       display: flex;
     }
 
-    /* Sidebar de navegacion desktop y tablet */
     .sidebar {
       width: var(--sidebar-w);
       min-height: 100vh;
@@ -56,7 +53,6 @@
       padding: 0 0 24px;
     }
 
-    /* Logo y nombre en la sidebar */
     .sidebar-brand {
       padding: 28px 24px 24px;
       border-bottom: 1px solid rgba(255,255,255,0.07);
@@ -97,7 +93,6 @@
       font-weight: 300;
     }
 
-    /* Items de navegacion en la sidebar */
     .sidebar-nav {
       flex: 1;
       padding: 0 12px;
@@ -120,41 +115,62 @@
       cursor: pointer;
     }
 
-    .nav-item:hover {
-      background: rgba(255,255,255,0.06);
-      color: var(--blanco);
-    }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: var(--blanco); }
 
-    /* Estado activo del item de navegacion */
     .nav-item.active {
       background: var(--naranja-glow);
       color: var(--naranja);
       border: 1px solid rgba(249,115,22,0.25);
     }
 
-    .nav-item .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+    .nav-item .nav-icon  { font-size: 18px; width: 22px; text-align: center; }
     .nav-item .nav-label { flex: 1; }
 
-    /* Badge de proximamente en items no listos */
-    .nav-item .nav-soon {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      background: rgba(255,255,255,0.08);
-      color: #78716C;
-      border-radius: 99px;
-      padding: 2px 7px;
-      text-transform: uppercase;
+    /* Info del usuario en la sidebar */
+    .sidebar-user {
+      padding: 14px 16px;
+      margin: 0 12px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.07);
     }
 
-    /* Version en el footer de la sidebar */
+    .sidebar-user .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blanco);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-user .user-rol {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--naranja);
+      margin-top: 2px;
+    }
+
     .sidebar-footer {
       padding: 0 24px;
       font-size: 10px;
       color: #57534E;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    /* Contenido principal desplazado por el ancho de la sidebar */
+    .sidebar-footer a {
+      color: #57534E;
+      text-decoration: none;
+      font-size: 10px;
+      transition: color 0.2s;
+    }
+
+    .sidebar-footer a:hover { color: #EF4444; }
+
     .main-content {
       margin-left: var(--sidebar-w);
       flex: 1;
@@ -163,7 +179,6 @@
       flex-direction: column;
     }
 
-    /* Bottom navigation para movil */
     .bottom-nav {
       display: none;
       position: fixed;
@@ -177,7 +192,6 @@
       justify-content: space-around;
     }
 
-    /* Item del bottom nav en movil */
     .bottom-nav-item {
       display: flex;
       flex-direction: column;
@@ -194,11 +208,8 @@
     }
 
     .bottom-nav-item .bn-icon { font-size: 20px; line-height: 1; }
+    .bottom-nav-item.active   { color: var(--naranja); }
 
-    /* Estado activo del bottom nav */
-    .bottom-nav-item.active { color: var(--naranja); }
-
-    /* Boton central destacado del bottom nav - Ventas */
     .bottom-nav-item.center-btn {
       background: var(--naranja);
       color: var(--blanco);
@@ -210,10 +221,8 @@
 
     .bottom-nav-item.center-btn.active { background: var(--naranja-deep); }
 
-    /* Espaciado del contenido para no quedar debajo del bottom nav en movil */
     .page-padding-bottom { padding-bottom: 0; }
 
-    /* Responsive: en movil se oculta sidebar y aparece bottom nav */
     @media (max-width: 768px) {
       .sidebar       { display: none; }
       .main-content  { margin-left: 0; }
@@ -221,12 +230,11 @@
       .page-padding-bottom { padding-bottom: calc(var(--bottomnav-h) + 12px); }
     }
 
-    /* Responsive: en tablet se reduce la sidebar */
     @media (min-width: 769px) and (max-width: 1024px) {
       :root { --sidebar-w: 200px; }
     }
 
-    /* Estilos globales reutilizables en todas las paginas */
+    /* Estilos globales de página */
     .page-header {
       background: var(--grad-header);
       padding: clamp(24px, 5vw, 40px) clamp(20px, 4vw, 40px) clamp(32px, 6vw, 52px);
@@ -277,12 +285,8 @@
       font-weight: 300;
     }
 
-    .page-body {
-      padding: clamp(16px, 3vw, 32px);
-      flex: 1;
-    }
+    .page-body { padding: clamp(16px, 3vw, 32px); flex: 1; }
 
-    /* Tarjeta generica reutilizable */
     .card {
       background: var(--blanco);
       border-radius: var(--radius);
@@ -309,7 +313,6 @@
 
     .card-body { padding: 20px 24px; }
 
-    /* Boton primario naranja reutilizable */
     .btn-primary {
       display: inline-flex;
       align-items: center;
@@ -333,7 +336,6 @@
     .btn-primary:active { transform: scale(0.98); }
     .btn-primary.full   { width: 100%; }
 
-    /* Boton secundario sin fondo */
     .btn-secondary {
       display: inline-flex;
       align-items: center;
@@ -354,7 +356,6 @@
 
     .btn-secondary:hover { border-color: var(--naranja); color: var(--naranja); }
 
-    /* Estilos de inputs globales */
     .field { display: flex; flex-direction: column; gap: 6px; }
 
     .field label {
@@ -391,7 +392,6 @@
 
     .field input.error { border-color: #EF4444; background: #FEF2F2; }
 
-    /* Toast de feedback global */
     .toast {
       position: fixed;
       bottom: 80px;
@@ -411,7 +411,7 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
 
-    .toast.show  { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.show    { transform: translateX(-50%) translateY(0); opacity: 1; }
     .toast.success { background: #166534; }
     .toast.error   { background: #991B1B; }
 
@@ -423,77 +423,108 @@
 </head>
 <body>
 
-<!-- Sidebar de navegacion para desktop y tablet -->
+<!-- Sidebar desktop/tablet -->
 <aside class="sidebar">
   <div class="sidebar-brand">
     <div class="brand-badge">En vivo</div>
-    <h1>Tienda <span>Dilan</span></h1>
+    <h1>{{ tienda.nombre if tienda else 'Controla' }}</h1>
     <p>Sistema de gestión</p>
   </div>
 
   <nav class="sidebar-nav">
-    <a href="/" class="nav-item {% if modulo == 'inicio' %}active{% endif %}">
+    {# ✅ FIX: href="/inicio" no "/" #}
+    <a href="/inicio" class="nav-item {% if modulo == 'inicio' %}active{% endif %}">
       <span class="nav-icon">🏠</span>
       <span class="nav-label">Inicio</span>
     </a>
+
     <a href="/ventas" class="nav-item {% if modulo == 'ventas' %}active{% endif %}">
       <span class="nav-icon">💰</span>
       <span class="nav-label">Ventas</span>
     </a>
+
+    {# Pedidos: solo admin/dueno #}
+    {% if rol in ['dueno', 'admin'] %}
     <a href="/pedidos" class="nav-item {% if modulo == 'pedidos' %}active{% endif %}">
       <span class="nav-icon">📦</span>
       <span class="nav-label">Pedidos</span>
     </a>
+    {% endif %}
+
     <a href="/inventario" class="nav-item {% if modulo == 'inventario' %}active{% endif %}">
       <span class="nav-icon">🗃️</span>
       <span class="nav-label">Inventario</span>
-      <span class="nav-soon">Pronto</span>
     </a>
+
+    {# Análisis: solo admin/dueno #}
+    {% if rol in ['dueno', 'admin'] %}
     <a href="/analisis" class="nav-item {% if modulo == 'analisis' %}active{% endif %}">
       <span class="nav-icon">📊</span>
       <span class="nav-label">Análisis</span>
-      <span class="nav-soon">Pronto</span>
     </a>
+
+    <a href="/usuarios" class="nav-item {% if modulo == 'usuarios' %}active{% endif %}">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Usuarios</span>
+    </a>
+    {% endif %}
   </nav>
 
+  {# Info del usuario logueado #}
+  {% if usuario_nombre %}
+  <div class="sidebar-user">
+    <div class="user-name">{{ usuario_nombre }}</div>
+    <div class="user-rol">{{ rol }}</div>
+  </div>
+  {% endif %}
+
   <div class="sidebar-footer">
-    v2.0 · Nicolas Becerra
+    <span>v2.1 · Controla</span>
+    <a href="/logout">Salir</a>
   </div>
 </aside>
 
-<!-- Contenido principal de cada pagina -->
+<!-- Contenido principal -->
 <main class="main-content page-padding-bottom">
   {% block content %}{% endblock %}
 </main>
 
-<!-- Bottom navigation para movil -->
+<!-- Bottom nav móvil -->
 <nav class="bottom-nav">
-  <a href="/" class="bottom-nav-item {% if modulo == 'inicio' %}active{% endif %}">
+  {# ✅ FIX: href="/inicio" no "/" #}
+  <a href="/inicio" class="bottom-nav-item {% if modulo == 'inicio' %}active{% endif %}">
     <span class="bn-icon">🏠</span>
     <span>Inicio</span>
   </a>
+
+  {% if rol in ['dueno', 'admin'] %}
   <a href="/pedidos" class="bottom-nav-item {% if modulo == 'pedidos' %}active{% endif %}">
     <span class="bn-icon">📦</span>
     <span>Pedidos</span>
   </a>
+  {% endif %}
+
   <a href="/ventas" class="bottom-nav-item center-btn {% if modulo == 'ventas' %}active{% endif %}">
     <span class="bn-icon">💰</span>
     <span>Ventas</span>
   </a>
+
   <a href="/inventario" class="bottom-nav-item {% if modulo == 'inventario' %}active{% endif %}">
     <span class="bn-icon">🗃️</span>
     <span>Inventario</span>
   </a>
+
+  {% if rol in ['dueno', 'admin'] %}
   <a href="/analisis" class="bottom-nav-item {% if modulo == 'analisis' %}active{% endif %}">
     <span class="bn-icon">📊</span>
     <span>Análisis</span>
   </a>
+  {% endif %}
 </nav>
 
-<!-- Toast global de feedback -->
+<!-- Toast global -->
 <div class="toast" id="toast"></div>
 
-<!-- Script global del toast reutilizable en todas las paginas -->
 <script>
   function mostrarToast(msg, tipo = "success") {
     const t = document.getElementById("toast");
