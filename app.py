@@ -21,6 +21,7 @@ import os
 app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "controla_super_secret_key_estable_2026"
+app.config["SESSION_COOKIE_SECURE"] = False
 
 # Mantener sesión activa
 app.config["SESSION_PERMANENT"] = True
@@ -31,7 +32,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # Refrescar sesión automáticamente
-app.config["SESSION_REFRESH_EACH_REQUEST"] = True
+app.config["SESSION_REFRESH_EACH_REQUEST"] = False
 
 # SOLO activar esto en producción HTTPS
 # app.config["SESSION_COOKIE_SECURE"] = True
@@ -462,10 +463,11 @@ def crear_cuenta():
 @app.route("/inicio")
 def inicio():
 
-    if "usuario_id" not in session:
+    if "usuario_id" not in session or "tienda_id" not in session:
+        session.clear()
         return redirect("/login")
 
-    tienda_id = session["tienda_id"]
+    tienda_id = session.get("tienda_id")
 
     # Obtener datos reales
     datos = obtener_datos_inicio(tienda_id)
@@ -979,4 +981,4 @@ def guardar_pedido():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
