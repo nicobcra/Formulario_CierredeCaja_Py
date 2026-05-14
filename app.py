@@ -21,21 +21,11 @@ import os
 app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "controla_super_secret_key_estable_2026"
-app.config["SESSION_COOKIE_SECURE"] = False
 
 # Mantener sesión activa
 app.config["SESSION_PERMANENT"] = True
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 
-# Cookies seguras
-app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-
-# Refrescar sesión automáticamente
-app.config["SESSION_REFRESH_EACH_REQUEST"] = True
-
-# SOLO activar esto en producción HTTPS
-# app.config["SESSION_COOKIE_SECURE"] = True
 
 def usuario_logueado():
     return "usuario_id" in session
