@@ -20,7 +20,7 @@ import os
 
 app = Flask(__name__)
 
-aIS_PROD = os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")
+IS_PROD = os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")
 
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev_local_key")
 app.config["SESSION_PERMANENT"] = True
