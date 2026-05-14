@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+.table-container{
+    width:100%;
+    overflow-x:auto;
+}
+
+.custom-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.custom-table th{
+    text-align:left;
+    padding:14px;
+    font-size:13px;
+    opacity:.7;
+    color:#94a3b8;
+}
+
+.custom-table td{
+    padding:14px;
+    border-top:1px solid rgba(255,255,255,.06);
+}
+
+.user-info{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.user-avatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#7c3aed,#2563eb);
+    font-weight:700;
+    color:white;
+    font-size:15px;
+}
+
+.table-actions{
+    display:flex;
+    gap:8px;
+}
+
+.btn-table{
+    border:none;
+    padding:8px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    background:#23263a;
+    color:white;
+    transition:.2s;
+}
+
+.btn-table:hover{
+    opacity:.8;
+}
+
+.btn-table.danger{
+    background:#4b1d1d;
+}
+
+.badge{
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:600;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.badge-success{
+    background:#123524;
+    color:#4ade80;
+}
+
+.badge-warning{
+    background:#3b2f12;
+    color:#facc15;
+}
+
+.badge-danger{
+    background:#3b1212;
+    color:#f87171;
+}
+
+.badge-info{
+    background:#10263b;
+    color:#60a5fa;
+}
+
+.btn-primary{
+    border:none;
+    padding:12px 18px;
+    border-radius:14px;
+    background:linear-gradient(135deg,#7c3aed,#2563eb);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.btn-primary:hover{
+    transform:translateY(-2px);
+}
+
+.card-large{
+    width:100%;
+}
+
+</style>
+
+
+<div class="page-header">
+
+    <div class="page-badge">
+        Administración
+    </div>
+
+    <h2>
+        Usuarios del sistema
+    </h2>
+
+    <p>
+        Gestiona accesos, roles y usuarios de la tienda
+    </p>
+
+</div>
+
+
+
+<div class="dashboard-grid">
+
+    <div class="card card-large">
+
+        <div class="card-header">
+
+            <div>
+                <h3>
+                    Usuarios registrados
+                </h3>
+
+                <span>
+                    Control de acceso del sistema
+                </span>
+            </div>
+
+            <button class="btn-primary">
+                + Nuevo usuario
+            </button>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table class="custom-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for usuario in usuarios %}
+
+                    <tr>
+
+                        <td>
+
+                            <div class="user-info">
+
+                                <div class="user-avatar">
+                                    {{ usuario.nombre[0] }}
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        {{ usuario.nombre }}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <td>
+                            {{ usuario.correo }}
+                        </td>
+
+
+                        <td>
+
+                            {% if usuario.rol == "dueno" %}
+
+                                <span class="badge badge-danger">
+                                    Dueño
+                                </span>
+
+                            {% elif usuario.rol == "admin" %}
+
+                                <span class="badge badge-warning">
+                                    Admin
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge badge-info">
+                                    Vendedor
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="badge badge-success">
+                                Activo
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <div class="table-actions">
+
+                                <button class="btn-table">
+                                    Editar
+                                </button>
+
+                                <button class="btn-table danger">
+                                    Eliminar
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
