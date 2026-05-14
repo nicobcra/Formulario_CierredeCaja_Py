@@ -19,6 +19,7 @@ import requests
 import os
 
 app = Flask(__name__)
+
 app.config["SECRET_KEY"] = "controla_super_secret_key_estable_2026"
 
 # Mantener sesión activa
@@ -28,14 +29,12 @@ app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 # Cookies seguras
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# Refrescar sesión automáticamente
 app.config["SESSION_REFRESH_EACH_REQUEST"] = True
 
 # SOLO activar esto en producción HTTPS
 # app.config["SESSION_COOKIE_SECURE"] = True
-
-
-
-
 
 def usuario_logueado():
     return "usuario_id" in session
@@ -462,42 +461,22 @@ def crear_cuenta():
 @app.route("/inicio")
 def inicio():
 
-    print("SESSION:", dict(session))
-
-    if not usuario_logueado():
+    if "usuario_id" not in session:
         return redirect("/login")
-
-    tienda_id = session["tienda_id"]
-
-    # Buscar datos de la tienda
-    res_tienda = requests.get(
-        f"{SUPABASE_URL}/rest/v1/tiendas",
-        headers=HEADERS,
-        params={
-            "id": f"eq.{tienda_id}",
-            "select": "*"
-        }
-    )
-
-    tienda = {}
-
-    if res_tienda.status_code == 200:
-
-        tiendas = res_tienda.json()
-
-        if len(tiendas) > 0:
-            tienda = tiendas[0]
-
-    datos = obtener_datos_inicio(tienda_id)
 
     return render_template(
         "inicio.html",
         modulo="inicio",
-        datos=datos,
-        tienda=tienda,
+        datos={
+            "total_hoy": 0,
+            "nequi_hoy": 0,
+            "daviplata_hoy": 0,
+            "efectivo_hoy": 0,
+            "semana": []
+        },
+        tienda={},
         usuario_nombre=session.get("usuario_nombre", "")
     )
-
 
 # Ruta del modulo de ventas diarias
 @app.route("/ventas")
