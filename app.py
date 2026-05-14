@@ -38,20 +38,13 @@ app.config["SESSION_COOKIE_SECURE"]        = IS_PROD
 
 @app.context_processor
 def inject_user_data():
-    tienda = None
-
-    if session.get("tienda_id"):
-        tiendas = sb_get("tiendas", {
-            "id": f"eq.{session['tienda_id']}",
-            "select": "nombre"
-        })
-
-        tienda = tiendas[0] if tiendas else {"nombre": "Mi tienda"}
 
     return {
         "rol": session.get("rol", ""),
         "usuario_nombre": session.get("usuario_nombre", ""),
-        "tienda": tienda
+        "tienda": {
+            "nombre": session.get("tienda_nombre", "Mi tienda")
+        }
     }
 
 # ─────────────────────────────────────────
