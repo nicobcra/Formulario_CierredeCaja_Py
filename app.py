@@ -407,12 +407,35 @@ def inicio():
     if not usuario_logueado():
         return redirect("/login")
 
+    tienda_id = session["tienda_id"]
+
+    # Buscar datos de la tienda
+    res_tienda = requests.get(
+        f"{SUPABASE_URL}/rest/v1/tiendas",
+        headers=HEADERS,
+        params={
+            "id": f"eq.{tienda_id}",
+            "select": "*"
+        }
+    )
+
+    tienda = {}
+
+    if res_tienda.status_code == 200:
+
+        tiendas = res_tienda.json()
+
+        if len(tiendas) > 0:
+            tienda = tiendas[0]
+
     datos = obtener_datos_inicio()
 
     return render_template(
         "inicio.html",
         modulo="inicio",
-        datos=datos
+        datos=datos,
+        tienda=tienda,
+        usuario_nombre=session.get("usuario_nombre", "")
     )
 
 
