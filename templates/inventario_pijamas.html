@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+{% block head %}
+<style>
+  /* Reutiliza los estilos base del inventario de víveres */
+  .search-wrap { position: relative; margin-bottom: 14px; }
+  .search-wrap .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
+  .search-input { width: 100%; padding: 13px 14px 13px 40px; border-radius: var(--radius-sm); border: 1.5px solid var(--gris-300); background: var(--blanco); font-family: var(--font-body); font-size: 15px; color: var(--gris-900); outline: none; transition: border-color 0.2s; box-shadow: var(--shadow-card); }
+  .search-input:focus { border-color: var(--naranja); box-shadow: 0 0 0 3px var(--naranja-glow); }
+
+  .filtros { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .filtros::-webkit-scrollbar { display: none; }
+  .filtro-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 99px; border: 1.5px solid var(--gris-300); background: var(--blanco); font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--gris-500); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .filtro-btn.active { background: var(--gris-900); border-color: var(--gris-900); color: var(--blanco); }
+  .filtro-btn.active.naranja { background: var(--naranja); border-color: var(--naranja); }
+
+  .productos-lista { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Card de pijama — más info que víveres */
+  .producto-card { background: var(--blanco); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); border: 1px solid var(--gris-100); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; animation: slideUp 0.3s ease both; transition: transform 0.15s; }
+  .producto-card:hover { transform: translateY(-1px); }
+  @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  .prod-top { display: flex; align-items: center; gap: 12px; }
+  .producto-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--naranja-pale); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: var(--naranja-deep); font-family: var(--font-display); flex-shrink: 0; }
+  .producto-info { flex: 1; min-width: 0; }
+  .producto-nombre { font-size: 14px; font-weight: 700; color: var(--gris-900); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .producto-meta { font-size: 12px; color: var(--gris-500); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tag-cat { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: .04em; }
+  .tag-dama   { background: #FCE7F3; color: #9D174D; }
+  .tag-hombre { background: #EFF6FF; color: #1D4ED8; }
+  .tag-ninos  { background: #F0FDF4; color: #166534; }
+
+  /* Tallas con stock */
+  .tallas-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .talla-chip { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--gris-200); background: var(--gris-50); min-width: 44px; }
+  .talla-chip.agotada { opacity: .4; }
+  .talla-chip.bajo    { border-color: #FCA5A5; background: #FEF2F2; }
+  .talla-chip.ok      { border-color: var(--gris-200); }
+  .talla-label { font-size: 12px; font-weight: 700; color: var(--gris-700); }
+  .talla-stock { font-size: 10px; color: var(--gris-500); }
+
+  .stock-badge { flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 99px; letter-spacing: .05em; text-transform: uppercase; align-self: flex-start; }
+  .stock-badge.bajo  { background: #FEE2E2; color: #DC2626; }
+  .stock-badge.alto  { background: #DCFCE7; color: #166534; }
+  .stock-badge.medio { background: #FEF9C3; color: #854D0E; }
+
+  /* Formulario nuevo producto */
+  .nuevo-prod-card { background: var(--blanco); border-radius: var(--radius); box-shadow: var(--shadow-card); border: 1px solid rgba(255,255,255,0.9); overflow: hidden; margin-bottom: 16px; animation: slideUp 0.35s ease both; }
+  .nuevo-prod-header { padding: 16px 20px; border-bottom: 1px solid var(--gris-100); display: flex; align-items: center; justify-content: space-between; }
+  .nuevo-prod-header h3 { font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--gris-500); }
+  .nuevo-prod-body { padding: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .field label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gris-500); }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--gris-500); margin-bottom: 10px; margin-top: 4px; }
+
+  /* Grid de tallas en el formulario */
+  .tallas-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .talla-form-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px 8px; border-radius: 10px; border: 1.5px solid var(--gris-200); background: var(--gris-50); }
+  .talla-form-name { font-size: 12px; font-weight: 700; color: var(--gris-700); }
+  .talla-form-input { width: 100%; text-align: center; padding: 5px 4px; border-radius: 6px; border: 1.5px solid var(--gris-300); background: var(--blanco); font-family: var(--font-body); font-size: 14px; font-weight: 700; color: var(--gris-900); outline: none; }
+  .talla-form-input:focus { border-color: var(--naranja); }
+
+  /* Tabs de categoría en el formulario */
+  .cat-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .cat-tab { flex: 1; padding: 10px 8px; border-radius: var(--radius-sm); border: 1.5px solid var(--gris-300); background: var(--blanco); font-family: var(--font-body); font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; color: var(--gris-500); transition: all .15s; }
+  .cat-tab.active { border-color: var(--naranja); background: var(--naranja-pale); color: var(--naranja-deep); }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .modal-overlay.visible { opacity: 1; pointer-events: all; }
+  .modal-sheet { background: var(--blanco); border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: 560px; padding: 0 0 32px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); max-height: 90vh; overflow-y: auto; }
+  .modal-overlay.visible .modal-sheet { transform: translateY(0); }
+  .modal-handle { width: 40px; height: 4px; background: var(--gris-300); border-radius: 99px; margin: 12px auto 20px; }
+  .modal-header { padding: 0 24px 16px; border-bottom: 1px solid var(--gris-100); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--gris-900); }
+  .modal-close { background: var(--gris-100); border: none; width: 32px; height: 32px; border-radius: 99px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gris-500); }
+  .modal-body { padding: 20px 24px; }
+
+  /* Stock por talla en modal */
+  .tallas-stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr)); gap: 10px; margin-bottom: 20px; }
+  .talla-stock-item { background: var(--gris-50); border-radius: var(--radius-sm); padding: 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .talla-stock-name { font-size: 13px; font-weight: 700; color: var(--gris-700); }
+  .talla-controls { display: flex; align-items: center; gap: 8px; }
+  .talla-btn { width: 28px; height: 28px; border-radius: 99px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .15s; }
+  .talla-btn:active { transform: scale(.9); }
+  .talla-btn.minus { background: #FEE2E2; color: #DC2626; }
+  .talla-btn.plus  { background: #DCFCE7; color: #166534; }
+  .talla-stock-num { font-size: 18px; font-weight: 700; color: var(--gris-900); min-width: 28px; text-align: center; }
+
+  .modal-meta { font-size: 12px; color: var(--gris-500); margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .modal-meta span { background: var(--gris-100); padding: 3px 10px; border-radius: 99px; }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--gris-300); }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  @media (max-width: 480px) { .page-body { padding: 12px; } .modal-sheet { max-width: 100%; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-badge">Tienda pijamas</div>
+  <h2>Inven<span>tario</span></h2>
+  <p>{{ total_productos }} modelos · {{ stock_bajo }} con stock bajo</p>
+</div>
+
+<div class="page-body">
+
+  <!-- Formulario nuevo producto -->
+  <div class="nuevo-prod-card" id="form-nuevo-prod" style="display:none;">
+    <div class="nuevo-prod-header">
+      <h3>Nuevo modelo</h3>
+      <button class="modal-close" onclick="ocultarFormNuevo()">✕</button>
+    </div>
+    <div class="nuevo-prod-body">
+
+      <div class="field">
+        <label>Nombre del modelo</label>
+        <input type="text" id="np-nombre" placeholder="Ej: Pijama satén flores" />
+      </div>
+
+      <div class="section-label">Categoría</div>
+      <div class="cat-tabs">
+        <button class="cat-tab" onclick="setCategoria('dama',this)">👩 Dama</button>
+        <button class="cat-tab" onclick="setCategoria('hombre',this)">👨 Hombre</button>
+        <button class="cat-tab" onclick="setCategoria('ninos',this)">🧒 Niños</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Material</label>
+          <select id="np-material">
+            <option value="satin">Satín</option>
+            <option value="algodon">Algodón</option>
+            <option value="peluche">Peluche</option>
+            <option value="babuchas">Babuchas</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Proveedor</label>
+          <select id="np-proveedor">
+            <option value="">Sin proveedor</option>
+            {% for p in proveedores %}
+            <option value="{{ p.id }}">{{ p.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Precio compra</label>
+          <input type="tel" id="np-precio-compra" inputmode="numeric" placeholder="$0" oninput="calcularMargenNuevo()" />
+        </div>
+        <div class="field">
+          <label>Precio venta</label>
+          <input type="tel" id="np-precio-venta" inputmode="numeric" placeholder="$0" oninput="calcularMargenNuevo()" />
+        </div>
+      </div>
+
+      <div id="margen-preview" style="display:none; background:var(--naranja-pale); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:12px;font-weight:600;color:var(--gris-500);">Margen</span>
+        <span id="margen-val" style="font-size:15px;font-weight:700;color:var(--naranja-deep);">0%</span>
+      </div>
+
+      <!-- Tallas dinámicas según categoría -->
+      <div class="section-label" id="tallas-section-label" style="display:none;">Stock por talla</div>
+      <div class="tallas-form-grid" id="tallas-form-grid"></div>
+
+      <button class="btn-primary full" onclick="guardarProductoPijama()">Guardar modelo</button>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" id="buscador" placeholder="Buscar modelo..." oninput="filtrarProductos()" />
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros">
+    <button class="filtro-btn active naranja" onclick="setFiltro('todos',this)">Todos ({{ total_productos }})</button>
+    <button class="filtro-btn" onclick="setFiltro('dama',this)">👩 Dama</button>
+    <button class="filtro-btn" onclick="setFiltro('hombre',this)">👨 Hombre</button>
+    <button class="filtro-btn" onclick="setFiltro('ninos',this)">🧒 Niños</button>
+    <button class="filtro-btn" onclick="setFiltro('bajo',this)">⚠️ Stock bajo ({{ stock_bajo }})</button>
+  </div>
+
+  <button class="btn-primary full" onclick="mostrarFormNuevo()" style="margin-bottom:16px;">+ Agregar modelo</button>
+
+  <!-- Lista -->
+  <div class="productos-lista" id="productos-lista">
+    {% if productos %}
+      {% for p in productos %}
+      <div class="producto-card"
+        data-nombre="{{ p.nombre | lower }}"
+        data-categoria="{{ p.categoria }}"
+        data-stock-bajo="{{ 'true' if p.stock_bajo else 'false' }}"
+        onclick="abrirModal({{ p | tojson | replace("'","&#39;") }})">
+
+        <div class="prod-top">
+          <div class="producto-icon">{{ p.nombre[0] | upper }}</div>
+          <div class="producto-info">
+            <div class="producto-nombre">{{ p.nombre }}</div>
+            <div class="producto-meta">
+              <span class="tag-cat tag-{{ p.categoria }}">{{ p.categoria }}</span>
+              <span>{{ p.material }}</span>
+              <span>·</span>
+              <span style="font-weight:700;color:var(--naranja-deep);">{{ p.precio_venta }}</span>
+            </div>
+          </div>
+          {% if p.stock_total <= 0 %}
+            <span class="stock-badge bajo">Agotado</span>
+          {% elif p.stock_bajo %}
+            <span class="stock-badge bajo">Stock bajo</span>
+          {% else %}
+            <span class="stock-badge alto">{{ p.stock_total }} uds</span>
+          {% endif %}
+        </div>
+
+        <!-- Chips de tallas -->
+        <div class="tallas-row">
+          {% for t in p.tallas %}
+          <div class="talla-chip {{ 'agotada' if t.stock <= 0 else 'bajo' if t.stock <= 2 else 'ok' }}">
+            <span class="talla-label">{{ t.talla }}</span>
+            <span class="talla-stock">{{ t.stock }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">👗</div>
+        <p>Aún no hay modelos.<br>Agrega el primero.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modal detalle/edición -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModalOverlay(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-nombre">Modelo</div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-meta" id="modal-meta"></div>
+      <div class="section-label">Ajustar stock por talla</div>
+      <div class="tallas-stock-grid" id="tallas-stock-grid"></div>
+      <button class="btn-primary full" id="btn-guardar-tallas" onclick="guardarTallas()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let categoriaActual = "";
+  let filtroActivo    = "todos";
+  let productoModal   = null;
+  let stockTemporal   = {};
+
+  const TALLAS = {
+    dama:   ["S","M","L","XL"],
+    hombre: ["S","M","L","XL"],
+    ninos:  ["2","4","6","8","10","14","16"],
+  };
+
+  function fmt(n) { return "$" + Number(n).toLocaleString("es-CO"); }
+  function parseNum(t) { return parseInt(String(t).replace(/\./g,"").replace(/,/g,"").replace(/\$/g,"").trim()) || 0; }
+  function fmtInput(el) {
+    const t = el.value.replace(/\./g,"").replace(/,/g,"").replace(/\$/g,"");
+    if (!t) return;
+    const n = parseInt(t);
+    if (!isNaN(n)) el.value = fmt(n);
+  }
+
+  function setCategoria(cat, btn) {
+    categoriaActual = cat;
+    document.querySelectorAll(".cat-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderTallasForm();
+  }
+
+  function renderTallasForm() {
+    const grid  = document.getElementById("tallas-form-grid");
+    const label = document.getElementById("tallas-section-label");
+    if (!categoriaActual) { grid.innerHTML = ""; label.style.display = "none"; return; }
+    label.style.display = "block";
+    const tallas = TALLAS[categoriaActual] || [];
+    grid.innerHTML = tallas.map(t => `
+      <div class="talla-form-item">
+        <span class="talla-form-name">${t}</span>
+        <input class="talla-form-input" type="number" id="talla-stock-${t}"
+          placeholder="0" min="0" inputmode="numeric" value="0" />
+      </div>
+    `).join("");
+  }
+
+  function calcularMargenNuevo() {
+    fmtInput(document.getElementById("np-precio-compra"));
+    fmtInput(document.getElementById("np-precio-venta"));
+    const c = parseNum(document.getElementById("np-precio-compra").value);
+    const v = parseNum(document.getElementById("np-precio-venta").value);
+    const p = document.getElementById("margen-preview");
+    if (c > 0 && v > 0) {
+      document.getElementById("margen-val").textContent = Math.round(((v-c)/c)*100) + "%";
+      p.style.display = "flex";
+    } else { p.style.display = "none"; }
+  }
+
+  function mostrarFormNuevo() {
+    document.getElementById("form-nuevo-prod").style.display = "block";
+    document.getElementById("np-nombre").focus();
+    document.getElementById("form-nuevo-prod").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function ocultarFormNuevo() {
+    document.getElementById("form-nuevo-prod").style.display = "none";
+    ["np-nombre","np-precio-compra","np-precio-venta"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("np-material").selectedIndex = 0;
+    document.querySelectorAll(".cat-tab").forEach(b => b.classList.remove("active"));
+    categoriaActual = "";
+    renderTallasForm();
+  }
+
+  async function guardarProductoPijama() {
+    const nombre = document.getElementById("np-nombre").value.trim();
+    if (!nombre)           { mostrarToast("Escribe el nombre del modelo", "error"); return; }
+    if (!categoriaActual)  { mostrarToast("Selecciona una categoría", "error"); return; }
+
+    const tallas = (TALLAS[categoriaActual] || []).map(t => ({
+      talla: t,
+      stock: parseInt(document.getElementById(`talla-stock-${t}`)?.value) || 0,
+    }));
+
+    const btn = document.querySelector("#form-nuevo-prod .btn-primary");
+    btn.disabled = true; btn.textContent = "Guardando...";
+
+    try {
+      const res  = await fetch("/guardar-producto-pijama", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre,
+          categoria:     categoriaActual,
+          material:      document.getElementById("np-material").value,
+          proveedor_id:  document.getElementById("np-proveedor").value || null,
+          precio_compra: parseNum(document.getElementById("np-precio-compra").value),
+          precio_venta:  parseNum(document.getElementById("np-precio-venta").value),
+          tallas,
+        })
+      });
+      const data = await res.json();
+      if (data.ok) { ocultarFormNuevo(); mostrarToast("✓ Modelo guardado","success"); setTimeout(() => location.reload(), 1200); }
+      else mostrarToast("Error: " + data.error, "error");
+    } catch { mostrarToast("Error de conexión","error"); }
+    finally { btn.disabled = false; btn.textContent = "Guardar modelo"; }
+  }
+
+  function abrirModal(p) {
+    productoModal = p;
+    stockTemporal = {};
+    p.tallas.forEach(t => { stockTemporal[t.id] = t.stock; });
+
+    document.getElementById("modal-nombre").textContent = p.nombre;
+    document.getElementById("modal-meta").innerHTML =
+      `<span>${p.categoria}</span><span>${p.material}</span><span>${p.precio_venta}</span>`;
+
+    const grid = document.getElementById("tallas-stock-grid");
+    grid.innerHTML = p.tallas.map(t => `
+      <div class="talla-stock-item">
+        <span class="talla-stock-name">${t.talla}</span>
+        <div class="talla-controls">
+          <button class="talla-btn minus" onclick="ajustarTalla(${t.id},-1)">−</button>
+          <span class="talla-stock-num" id="ts-${t.id}">${t.stock}</span>
+          <button class="talla-btn plus"  onclick="ajustarTalla(${t.id},+1)">+</button>
+        </div>
+      </div>
+    `).join("");
+
+    document.getElementById("modal-overlay").classList.add("visible");
+    document.body.style.overflow = "hidden";
+  }
+
+  function ajustarTalla(tallaId, delta) {
+    stockTemporal[tallaId] = Math.max(0, (stockTemporal[tallaId] || 0) + delta);
+    document.getElementById(`ts-${tallaId}`).textContent = stockTemporal[tallaId];
+  }
+
+  async function guardarTallas() {
+    if (!productoModal) return;
+    const btn = document.getElementById("btn-guardar-tallas");
+    btn.disabled = true; btn.textContent = "Guardando...";
+    try {
+      const promesas = productoModal.tallas.map(t => {
+        const delta = stockTemporal[t.id] - t.stock;
+        if (delta === 0) return Promise.resolve();
+        return fetch("/actualizar-talla-stock", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ talla_id: t.id, delta })
+        });
+      });
+      await Promise.all(promesas);
+      cerrarModal();
+      mostrarToast("✓ Stock actualizado","success");
+      setTimeout(() => location.reload(), 1200);
+    } catch { mostrarToast("Error de conexión","error"); }
+    finally { btn.disabled = false; btn.textContent = "Guardar cambios"; }
+  }
+
+  function cerrarModal() {
+    document.getElementById("modal-overlay").classList.remove("visible");
+    document.body.style.overflow = "";
+    productoModal = null;
+  }
+
+  function cerrarModalOverlay(e) {
+    if (e.target === document.getElementById("modal-overlay")) cerrarModal();
+  }
+
+  function setFiltro(filtro, btn) {
+    filtroActivo = filtro;
+    document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("active","naranja"));
+    btn.classList.add("active");
+    if (filtro === "todos") btn.classList.add("naranja");
+    filtrarProductos();
+  }
+
+  function filtrarProductos() {
+    const q = document.getElementById("buscador").value.toLowerCase().trim();
+    document.querySelectorAll(".producto-card").forEach(card => {
+      const nombre    = card.dataset.nombre || "";
+      const categoria = card.dataset.categoria || "";
+      const stockBajo = card.dataset.stockBajo === "true";
+      const matchQ = nombre.includes(q);
+      const matchF =
+        filtroActivo === "todos"   ? true :
+        filtroActivo === "bajo"    ? stockBajo :
+        categoria === filtroActivo;
+      card.style.display = (matchQ && matchF) ? "flex" : "none";
+    });
+  }
+</script>
+{% endblock %}
