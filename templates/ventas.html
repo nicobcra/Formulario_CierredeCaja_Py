@@ -2,57 +2,168 @@
 
 {% block head %}
 <style>
-  /* Estilos especificos del modulo de ventas */
-  .ventas-wrap {
-    max-width: 560px;
-    margin: 0 auto;
+  /* ── Layout POS ── */
+  .pos-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* ── Búsqueda y cuadrícula de productos ── */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  .search-wrap .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  .search-input {
     width: 100%;
-  }
-
-   /* Fix de desbordamiento horizontal en movil */
-  @media (max-width: 768px) {
-    html, body { overflow-x: hidden; max-width: 100vw; }
-    .main-content { width: 100%; min-width: 0; max-width: 100vw; }
-    .page-body { overflow-x: hidden; }
-  }
-
-
-  /* En movil el page-body reduce padding para aprovechar pantalla */
-  @media (max-width: 480px) {
-    .page-body { padding: 10px; }
-    .form-card-body { padding: 16px; }
-    .form-card-header { padding: 14px 16px; }
-    .fields-grid { gap: 8px; }
-    .money-field input { padding: 11px 10px; font-size: 15px; }
-    .total-block { padding: 14px 16px; }
-    .historial-header { padding: 0 2px 10px; }
-  }
-
-  /* Card del formulario de ventas */
-  .form-card {
-    background: linear-gradient(160deg, #FFFFFF 0%, #F9FAFB 100%);
-    border-radius: var(--radius);
+    padding: 13px 14px 13px 42px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--gris-300);
+    background: var(--blanco);
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--gris-900);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
     box-shadow: var(--shadow-card);
-    border: 1px solid rgba(255,255,255,0.9);
-    overflow: hidden;
-    margin-bottom: 16px;
-    animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .search-input:focus {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 3px var(--naranja-glow);
+  }
+
+  .productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .prod-tile {
+    background: var(--blanco);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card);
+    border: 2px solid transparent;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    animation: slideUp 0.25s ease both;
+    position: relative;
+  }
+
+  .prod-tile:hover {
+    border-color: var(--naranja);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(249,115,22,0.15);
+  }
+
+  .prod-tile:active { transform: scale(0.97); }
+
+  .prod-tile.agotado {
+    opacity: 0.45;
+    pointer-events: none;
   }
 
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .form-card-header {
-    padding: 18px 24px;
+  .prod-tile-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--naranja-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--naranja-deep);
+    font-family: var(--font-display);
+  }
+
+  .prod-tile-nombre {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gris-900);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .prod-tile-precio {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--naranja-deep);
+  }
+
+  .prod-tile-stock {
+    font-size: 10px;
+    color: var(--gris-500);
+  }
+
+  .prod-tile-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--naranja);
+    color: var(--blanco);
+    border-radius: 99px;
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Panel derecho: carrito + pago ── */
+  .panel-derecho {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: sticky;
+    top: 16px;
+  }
+
+  .carrito-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--gris-100);
+    overflow: hidden;
+  }
+
+  .carrito-header {
+    padding: 14px 18px;
     border-bottom: 1px solid var(--gris-100);
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
 
-  .form-card-header h3 {
+  .carrito-header h3 {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -60,133 +171,250 @@
     color: var(--gris-500);
   }
 
-  .fecha-chip {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--naranja-deep);
-    background: var(--naranja-pale);
-    border-radius: 99px;
-    padding: 4px 12px;
+  .carrito-limpiar {
+    font-size: 11px;
+    font-weight: 600;
+    color: #EF4444;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
   }
 
-  .form-card-body { padding: 20px 24px; }
+  .carrito-items {
+    max-height: 240px;
+    overflow-y: auto;
+  }
 
-  /* Campo de fecha */
-  .field-fecha { margin-bottom: 20px; }
+  .carrito-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--gris-100);
+  }
 
-  .field-fecha input[type="date"] {
+  .carrito-item:last-child { border-bottom: none; }
+
+  .ci-info { flex: 1; min-width: 0; }
+
+  .ci-nombre {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gris-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ci-precio {
+    font-size: 12px;
+    color: var(--gris-500);
+    margin-top: 1px;
+  }
+
+  .ci-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .ci-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1.5px solid var(--gris-300);
+    background: var(--blanco);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gris-700);
+    transition: border-color 0.15s;
+  }
+
+  .ci-btn:hover { border-color: var(--naranja); color: var(--naranja); }
+
+  .ci-qty {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gris-900);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .ci-subtotal {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--naranja-deep);
+    min-width: 64px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .carrito-empty {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--gris-300);
+    font-size: 13px;
+  }
+
+  /* ── Totales ── */
+  .resumen-total {
+    background: var(--gris-900);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 0;
+  }
+
+  .resumen-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #A8A29E;
+  }
+
+  .resumen-valor {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--blanco);
+  }
+
+  /* ── Sección de pago ── */
+  .pago-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--gris-100);
+    padding: 16px 18px;
+  }
+
+  .pago-card h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+    margin-bottom: 12px;
+  }
+
+  .metodos-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .metodo-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gris-300);
+    background: var(--blanco);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    color: var(--gris-500);
+  }
+
+  .metodo-btn.activo {
+    border-color: var(--naranja);
+    background: var(--naranja-pale);
+    color: var(--naranja-deep);
+  }
+
+  .efectivo-wrap {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+    animation: slideUp 0.2s ease;
+  }
+
+  .efectivo-wrap.visible { display: flex; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+
+  .field label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+  }
+
+  .field input {
     width: 100%;
-    padding: 13px 16px;
+    padding: 11px 13px;
     border-radius: var(--radius-sm);
     border: 1.5px solid var(--gris-300);
     background: var(--blanco);
     font-family: var(--font-body);
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--gris-900);
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     -webkit-appearance: none;
   }
 
-  .field-fecha input[type="date"]:focus {
+  .field input:focus {
     border-color: var(--naranja);
     box-shadow: 0 0 0 3px var(--naranja-glow);
   }
 
-  /* Grid de campos monetarios 2x2 */
-  .fields-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  /* Campo monetario individual */
-  .money-field { display: flex; flex-direction: column; gap: 7px; }
-
-  .money-field label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--gris-500);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .money-field input {
-    width: 100%;
-    padding: 13px 14px;
+  .vueltas-display {
+    background: #DCFCE7;
     border-radius: var(--radius-sm);
-    border: 1.5px solid var(--gris-300);
-    background: var(--blanco);
-    font-family: var(--font-body);
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--gris-900);
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    -webkit-appearance: none;
-  }
-
-  .money-field input::placeholder { color: var(--gris-300); font-weight: 400; }
-
-  .money-field input:focus {
-    border-color: var(--naranja);
-    box-shadow: 0 0 0 3px var(--naranja-glow);
-    background: var(--naranja-pale);
-  }
-
-  /* Estado de error en campo vacio */
-  .money-field input.error {
-    border-color: #EF4444;
-    background: #FEF2F2;
-    animation: shake 0.3s ease;
-  }
-
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    25%      { transform: translateX(-4px); }
-    75%      { transform: translateX(4px); }
-  }
-
-  /* Bloque del total calculado */
-  .total-block {
-    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
-    border-radius: var(--radius-sm);
-    padding: 18px 20px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-btn);
   }
 
-  .total-block .total-label {
+  .vueltas-label {
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.06em;
+    color: #166534;
   }
 
-  .total-block .total-amount {
+  .vueltas-valor {
     font-family: var(--font-display);
-    font-size: clamp(24px, 6vw, 32px);
-    color: var(--blanco);
-    letter-spacing: -0.02em;
+    font-size: 22px;
+    color: #166534;
   }
 
-  /* Seccion historial de ventas */
-  .historial-section {
+  .vueltas-insuficiente {
+    background: #FEE2E2;
+  }
+
+  .vueltas-insuficiente .vueltas-label,
+  .vueltas-insuficiente .vueltas-valor { color: #DC2626; }
+
+  /* ── Historial del día ── */
+  .historial-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--gris-100);
+    overflow: hidden;
     margin-top: 16px;
-    animation: slideUp 0.45s 0.1s cubic-bezier(0.22,1,0.36,1) both;
   }
 
   .historial-header {
-    padding: 0 4px 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--gris-100);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -195,310 +423,442 @@
   .historial-header h3 {
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
     color: var(--gris-500);
   }
 
-  .historial-count {
-    font-size: 11px;
+  .venta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--gris-100);
+    animation: slideUp 0.25s ease both;
+  }
+
+  .venta-row:last-child { border-bottom: none; }
+
+  .venta-hora {
+    font-size: 12px;
     font-weight: 600;
-    color: var(--naranja);
-    background: var(--naranja-pale);
-    border-radius: 99px;
-    padding: 3px 10px;
+    color: var(--gris-500);
+    min-width: 48px;
   }
 
-  /* Tabla del historial de ventas */
-  .table-wrap {
-    background: var(--blanco);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-card);
-    border: 1px solid rgba(255,255,255,0.9);
+  .venta-items-lista {
+    flex: 1;
+    font-size: 12px;
+    color: var(--gris-700);
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-  table { width: 100%; min-width: 480px; border-collapse: collapse; }
-
-  thead tr { background: var(--gris-900); }
-
-  thead th {
-    padding: 12px 14px;
+  .venta-metodo-badge {
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 99px;
+    flex-shrink: 0;
     text-transform: uppercase;
-    color: #9CA3AF;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-efectivo  { background: #DCFCE7; color: #166534; }
+  .badge-nequi     { background: #EDE9FE; color: #5B21B6; }
+  .badge-daviplata { background: #FCE7F3; color: #9D174D; }
+
+  .venta-total {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--naranja-deep);
+    min-width: 72px;
     text-align: right;
   }
 
-  thead th:first-child { text-align: left; }
-
-  tbody tr {
-    border-bottom: 1px solid var(--gris-100);
-    transition: background 0.15s;
-  }
-
-  tbody tr:last-child  { border-bottom: none; }
-  tbody tr:hover       { background: var(--naranja-pale); }
-
-  tbody td {
-    padding: 13px 14px;
+  .empty-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--gris-300);
     font-size: 13px;
-    font-weight: 500;
-    color: var(--gris-700);
-    text-align: right;
   }
 
-  tbody td:first-child {
-    text-align: left;
-    font-weight: 600;
-    color: var(--gris-900);
-    font-size: 12px;
+  /* ── Responsivo ── */
+  @media (max-width: 900px) {
+    .pos-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .panel-derecho {
+      position: static;
+    }
+
+    .productos-grid {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      max-height: 45vh;
+    }
   }
 
-  /* Columna total destacada en naranja */
-  tbody td:last-child { font-weight: 700; color: var(--naranja-deep); }
-
-  /* Fila vacia cuando no hay datos */
-  .empty-row td {
-    text-align: center !important;
-    color: var(--gris-300) !important;
-    font-weight: 400 !important;
-    font-size: 13px !important;
-    padding: 32px !important;
+  @media (max-width: 480px) {
+    .page-body { padding: 12px; }
+    .productos-grid { max-height: 38vh; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Cabecera del modulo de ventas -->
 <div class="page-header">
-  <div class="page-badge">Registro diario</div>
-  <h2>Ventas <span>del día</span></h2>
-  <p>Ingresa las ventas de hoy</p>
+  <div class="page-badge">Punto de venta</div>
+  <h2>Regis<span>trar Venta</span></h2>
+  <p>Selecciona productos y registra el pago</p>
 </div>
 
-<!-- Cuerpo del modulo de ventas -->
 <div class="page-body">
-  <div class="ventas-wrap">
+  <div class="pos-layout">
 
-    <!-- Tarjeta del formulario de ventas -->
-    <div class="form-card">
-      <div class="form-card-header">
-        <h3>Nueva venta</h3>
-        <span class="fecha-chip" id="fecha-hoy"></span>
+    <!-- ── Columna izquierda: productos ── -->
+    <div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" id="buscador"
+          placeholder="Buscar producto..."
+          oninput="filtrarProductos()" />
       </div>
 
-      <div class="form-card-body">
+      <div class="productos-grid" id="productos-grid">
+        {% if productos %}
+          {% for p in productos %}
+          <div class="prod-tile {{ 'agotado' if p.stock <= 0 else '' }}"
+            data-id="{{ p.id }}"
+            data-nombre="{{ p.nombre }}"
+            data-nombre-lower="{{ p.nombre | lower }}"
+            data-precio="{{ p.precio_venta_raw }}"
+            data-stock="{{ p.stock }}"
+            onclick="agregarAlCarrito({{ p.id }}, '{{ p.nombre | replace("'","") }}', {{ p.precio_venta_raw }}, {{ p.stock }})">
 
-        <!-- Campo de fecha -->
-        <div class="field-fecha">
-          <label class="field" style="font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--gris-500); margin-bottom:7px; display:block;">Fecha</label>
-          <input type="date" id="input-fecha" />
+            <div class="prod-tile-badge" id="badge-{{ p.id }}" style="display:none;">0</div>
+            <div class="prod-tile-icon">{{ p.nombre[0] | upper }}</div>
+            <div class="prod-tile-nombre">{{ p.nombre }}</div>
+            <div class="prod-tile-precio">{{ p.precio_venta }}</div>
+            <div class="prod-tile-stock">
+              {% if p.stock <= 0 %}Agotado{% else %}{{ p.stock }} en stock{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state" style="grid-column:1/-1;">
+            <div style="font-size:40px;margin-bottom:8px;">🗃️</div>
+            <p>No hay productos en inventario.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── Columna derecha: carrito + pago ── -->
+    <div class="panel-derecho">
+
+      <!-- Carrito -->
+      <div class="carrito-card">
+        <div class="carrito-header">
+          <h3>Carrito (<span id="carrito-count">0</span>)</h3>
+          <button class="carrito-limpiar" onclick="limpiarCarrito()">Vaciar</button>
+        </div>
+        <div class="carrito-items" id="carrito-items">
+          <div class="carrito-empty" id="carrito-empty">Toca un producto para agregarlo</div>
+        </div>
+        <div class="resumen-total">
+          <span class="resumen-label">Total</span>
+          <span class="resumen-valor" id="total-display">$0</span>
+        </div>
+      </div>
+
+      <!-- Pago -->
+      <div class="pago-card">
+        <h3>Método de pago</h3>
+
+        <div class="metodos-row">
+          <button class="metodo-btn" onclick="setMetodo('efectivo', this)">💵 Efectivo</button>
+          <button class="metodo-btn" onclick="setMetodo('nequi', this)">📱 Nequi</button>
+          <button class="metodo-btn" onclick="setMetodo('daviplata', this)">💜 Daviplata</button>
         </div>
 
-        <!-- Grid de campos monetarios -->
-        <div class="fields-grid">
-          <div class="money-field">
-            <label><span>💙</span> Nequi</label>
-            <input type="tel" id="input-nequi" inputmode="numeric" placeholder="$0" />
+        <!-- Sección efectivo: cuánto paga / vueltas -->
+        <div class="efectivo-wrap" id="efectivo-wrap">
+          <div class="field">
+            <label>Con cuánto paga</label>
+            <input type="tel" id="pago-con" inputmode="numeric"
+              placeholder="$0" oninput="calcularVueltas(this)" />
           </div>
-          <div class="money-field">
-            <label><span>❤️</span> Daviplata</label>
-            <input type="tel" id="input-daviplata" inputmode="numeric" placeholder="$0" />
-          </div>
-          <div class="money-field">
-            <label><span>💵</span> Efectivo</label>
-            <input type="tel" id="input-efectivo" inputmode="numeric" placeholder="$0" />
-          </div>
-          <div class="money-field">
-            <label><span>📋</span> Fiado</label>
-            <input type="tel" id="input-fiado" inputmode="numeric" placeholder="$0" />
+          <div class="vueltas-display" id="vueltas-display">
+            <span class="vueltas-label">Vueltas</span>
+            <span class="vueltas-valor" id="vueltas-valor">$0</span>
           </div>
         </div>
 
-        <!-- Total calculado automaticamente -->
-        <div class="total-block">
-          <div class="total-label">Total del día</div>
-          <div class="total-amount" id="display-total">$0</div>
-        </div>
-
-        <!-- Boton de guardado -->
-        <button class="btn-primary full" id="btn-guardar" onclick="guardarVenta()">
-          Guardar venta
+        <button class="btn-primary full" id="btn-venta" onclick="guardarVenta()">
+          Cobrar
         </button>
-
       </div>
+
     </div>
-
-    <!-- Seccion historial de ventas -->
-    <div class="historial-section">
-      <div class="historial-header">
-        <h3>Historial</h3>
-        <span class="historial-count" id="historial-count">
-          {{ ventas|length }} registro{{ 's' if ventas|length != 1 else '' }}
-        </span>
-      </div>
-      <div class="table-wrap">
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Nequi</th>
-                <th>DaviPlata</th>
-                <th>Efectivo</th>
-                <th>Fiado</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-body">
-              {% if ventas %}
-                {% for v in ventas %}
-                <tr>
-                  <td>{{ v.fecha }}</td>
-                  <td>{{ v.nequi }}</td>
-                  <td>{{ v.daviplata }}</td>
-                  <td>{{ v.efectivo }}</td>
-                  <td>{{ v.fiado }}</td>
-                  <td>{{ v.total }}</td>
-                </tr>
-                {% endfor %}
-              {% else %}
-                <tr class="empty-row">
-                  <td colspan="6">Aún no hay ventas registradas</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
   </div>
-</div>
 
+  <!-- Historial de ventas del día -->
+  <div class="historial-card">
+    <div class="historial-header">
+      <h3>Ventas de hoy</h3>
+      <span id="ventas-hoy-count" style="font-size:12px; color:var(--gris-500);">—</span>
+    </div>
+    <div id="ventas-hoy-lista">
+      <div class="empty-state">Aquí aparecerán las ventas del día.</div>
+    </div>
+  </div>
+
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // Formato de pesos colombianos
-  function formatearCOP(valor) {
-    return "$" + Number(valor).toLocaleString("es-CO");
+  // ── Estado global ──
+  let carrito  = {};   // { id: { nombre, precio, qty, stock } }
+  let metodo   = null;
+  let ventasHoy = [];
+
+  // ── Utilidades ──
+  function fmt(n) {
+    return "$" + Number(n).toLocaleString("es-CO");
   }
 
-  // Limpia puntos, comas y simbolo de pesos para convertir el texto a numero
-  function parseNum(texto) {
-    return parseInt(String(texto).replace(/\./g, "").replace(/,/g, "").replace(/\$/g, "").trim()) || 0;
+  function parseNum(t) {
+    return parseInt(String(t).replace(/\./g,"").replace(/,/g,"").replace(/\$/g,"").trim()) || 0;
   }
 
-  // Coloca la fecha de hoy en el input y en el chip del header
-  function setFechaHoy() {
-    const hoy  = new Date();
-    const yyyy = hoy.getFullYear();
-    const mm   = String(hoy.getMonth() + 1).padStart(2, "0");
-    const dd   = String(hoy.getDate()).padStart(2, "0");
-    document.getElementById("input-fecha").value = `${yyyy}-${mm}-${dd}`;
-    document.getElementById("fecha-hoy").textContent = `${dd}/${mm}/${yyyy}`;
+  function fmtInput(el) {
+    const raw = el.value.replace(/\./g,"").replace(/,/g,"").replace(/\$/g,"").trim();
+    if (!raw) return;
+    const n = parseInt(raw);
+    if (!isNaN(n)) el.value = fmt(n);
   }
 
-  // Suma los cuatro campos de dinero y muestra el total formateado en pantalla
-  function actualizarTotal() {
-    const n = parseNum(document.getElementById("input-nequi").value);
-    const d = parseNum(document.getElementById("input-daviplata").value);
-    const e = parseNum(document.getElementById("input-efectivo").value);
-    const f = parseNum(document.getElementById("input-fiado").value);
-    document.getElementById("display-total").textContent = formatearCOP(n + d + e + f);
+  function totalCarrito() {
+    return Object.values(carrito).reduce((s, i) => s + i.precio * i.qty, 0);
   }
 
-  // Toma lo que escribio el usuario y lo convierte automaticamente a formato monetario
-  function formatearEntrada(input) {
-    const texto = input.value.replace(/\./g, "").replace(/,/g, "").replace(/\$/g, "");
-    if (texto === "") { actualizarTotal(); return; }
-    const num = parseInt(texto);
-    if (!isNaN(num)) input.value = formatearCOP(num);
-    input.classList.remove("error");
-    actualizarTotal();
+  // ── Carrito ──
+  function agregarAlCarrito(id, nombre, precio, stock) {
+    if (carrito[id]) {
+      if (carrito[id].qty >= stock) {
+        mostrarToast("No hay más stock disponible", "error");
+        return;
+      }
+      carrito[id].qty++;
+    } else {
+      carrito[id] = { nombre, precio, qty: 1, stock };
+    }
+    renderCarrito();
+    actualizarBadge(id);
   }
 
-  // Validacion visual de campos vacios
-  function validarCampos() {
-    const ids  = ["input-nequi", "input-daviplata", "input-efectivo", "input-fiado"];
-    let valido = true;
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el.value.trim()) { el.classList.add("error"); valido = false; }
-    });
-    return valido;
+  function cambiarCantidad(id, delta) {
+    if (!carrito[id]) return;
+    const nueva = carrito[id].qty + delta;
+    if (nueva <= 0) {
+      delete carrito[id];
+    } else if (nueva > carrito[id].stock) {
+      mostrarToast("Sin stock suficiente", "error");
+      return;
+    } else {
+      carrito[id].qty = nueva;
+    }
+    renderCarrito();
+    actualizarBadge(id);
   }
 
-  // Agrega fila nueva al historial en pantalla sin recargar la pagina
-  function agregarFilaTabla(v) {
-    const tbody = document.getElementById("tabla-body");
-    const vacia = tbody.querySelector(".empty-row");
-    if (vacia) vacia.remove();
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${v.fecha}</td><td>${v.nequi}</td><td>${v.daviplata}</td>
-      <td>${v.efectivo}</td><td>${v.fiado}</td><td>${v.total}</td>
-    `;
-    tbody.prepend(tr);
-    const count = tbody.querySelectorAll("tr").length;
-    document.getElementById("historial-count").textContent =
-      `${count} registro${count !== 1 ? "s" : ""}`;
+  function limpiarCarrito() {
+    carrito = {};
+    renderCarrito();
+    document.querySelectorAll(".prod-tile-badge").forEach(b => b.style.display = "none");
   }
 
-  // Limpieza del formulario despues de enviar al servidor
-  function limpiarFormulario() {
-    ["input-nequi","input-daviplata","input-efectivo","input-fiado"]
-      .forEach(id => document.getElementById(id).value = "");
-    document.getElementById("display-total").textContent = "$0";
-    setFechaHoy();
+  function actualizarBadge(id) {
+    const badge = document.getElementById(`badge-${id}`);
+    if (!badge) return;
+    const item = carrito[id];
+    if (item && item.qty > 0) {
+      badge.textContent  = item.qty;
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+    }
   }
 
-  // Guarda los datos del formulario enviandolos al backend Flask
+  function renderCarrito() {
+    const lista  = document.getElementById("carrito-items");
+    const empty  = document.getElementById("carrito-empty");
+    const count  = document.getElementById("carrito-count");
+    const totalEl = document.getElementById("total-display");
+    const items  = Object.entries(carrito);
+
+    count.textContent   = items.reduce((s,[,i]) => s + i.qty, 0);
+    totalEl.textContent = fmt(totalCarrito());
+
+    if (items.length === 0) {
+      lista.innerHTML = '<div class="carrito-empty">Toca un producto para agregarlo</div>';
+      calcularVueltas();
+      return;
+    }
+
+    lista.innerHTML = items.map(([id, item]) => `
+      <div class="carrito-item">
+        <div class="ci-info">
+          <div class="ci-nombre">${item.nombre}</div>
+          <div class="ci-precio">${fmt(item.precio)} c/u</div>
+        </div>
+        <div class="ci-controls">
+          <button class="ci-btn" onclick="cambiarCantidad(${id}, -1)">−</button>
+          <span class="ci-qty">${item.qty}</span>
+          <button class="ci-btn" onclick="cambiarCantidad(${id}, +1)">+</button>
+        </div>
+        <div class="ci-subtotal">${fmt(item.precio * item.qty)}</div>
+      </div>
+    `).join("");
+
+    calcularVueltas();
+  }
+
+  // ── Metodo de pago ──
+  function setMetodo(m, btn) {
+    metodo = m;
+    document.querySelectorAll(".metodo-btn").forEach(b => b.classList.remove("activo"));
+    btn.classList.add("activo");
+    const wrap = document.getElementById("efectivo-wrap");
+    if (m === "efectivo") {
+      wrap.classList.add("visible");
+    } else {
+      wrap.classList.remove("visible");
+      document.getElementById("pago-con").value = "";
+    }
+  }
+
+  function calcularVueltas(el) {
+    if (el) fmtInput(el);
+    const total   = totalCarrito();
+    const pagaCon = parseNum(document.getElementById("pago-con").value);
+    const vueltas = pagaCon - total;
+    const disp    = document.getElementById("vueltas-display");
+    const valEl   = document.getElementById("vueltas-valor");
+
+    valEl.textContent = fmt(Math.abs(vueltas));
+    if (pagaCon === 0) {
+      disp.className = "vueltas-display";
+      valEl.textContent = "$0";
+    } else if (vueltas >= 0) {
+      disp.className = "vueltas-display";
+    } else {
+      disp.className = "vueltas-display vueltas-insuficiente";
+    }
+  }
+
+  // ── Guardar venta ──
   async function guardarVenta() {
-    if (!validarCampos()) { mostrarToast("Completa todos los campos", "error"); return; }
-    const btn = document.getElementById("btn-guardar");
-    btn.disabled = true;
-    btn.textContent = "Guardando...";
+    const items = Object.entries(carrito);
+    if (items.length === 0) {
+      mostrarToast("Agrega al menos un producto", "error");
+      return;
+    }
+    if (!metodo) {
+      mostrarToast("Selecciona un método de pago", "error");
+      return;
+    }
+    if (metodo === "efectivo") {
+      const total   = totalCarrito();
+      const pagaCon = parseNum(document.getElementById("pago-con").value);
+      if (pagaCon < total) {
+        mostrarToast("El pago no cubre el total", "error");
+        return;
+      }
+    }
+
+    const btn = document.getElementById("btn-venta");
+    btn.disabled    = true;
+    btn.textContent = "Procesando...";
+
     const payload = {
-      fecha:     document.getElementById("input-fecha").value,
-      nequi:     parseNum(document.getElementById("input-nequi").value),
-      daviplata: parseNum(document.getElementById("input-daviplata").value),
-      efectivo:  parseNum(document.getElementById("input-efectivo").value),
-      fiado:     parseNum(document.getElementById("input-fiado").value),
+      metodo,
+      total: totalCarrito(),
+      items: items.map(([id, i]) => ({
+        producto_id: parseInt(id),
+        nombre:      i.nombre,
+        precio:      i.precio,
+        cantidad:    i.qty,
+        subtotal:    i.precio * i.qty,
+      })),
     };
+
     try {
-      const res  = await fetch("/guardar-venta", {
-        method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload)
+      const res  = await fetch("/registrar-venta", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.ok) {
-        agregarFilaTabla(data);
-        limpiarFormulario();
-        mostrarToast("✓ Venta guardada correctamente", "success");
+        mostrarToast(`✓ Venta de ${fmt(data.total)} registrada`, "success");
+        ventasHoy.unshift(data);
+        renderVentasHoy();
+        limpiarCarrito();
+        metodo = null;
+        document.querySelectorAll(".metodo-btn").forEach(b => b.classList.remove("activo"));
+        document.getElementById("efectivo-wrap").classList.remove("visible");
+        document.getElementById("pago-con").value = "";
       } else {
         mostrarToast("Error: " + data.error, "error");
       }
     } catch {
       mostrarToast("Error de conexión", "error");
     } finally {
-      btn.disabled = false;
-      btn.textContent = "Guardar venta";
+      btn.disabled    = false;
+      btn.textContent = "Cobrar";
     }
   }
 
-  // Eventos de formateo automatico en cada campo monetario
-  document.querySelectorAll("#input-nequi,#input-daviplata,#input-efectivo,#input-fiado")
-    .forEach(el => el.addEventListener("input", () => formatearEntrada(el)));
+  // ── Historial del día ──
+  function renderVentasHoy() {
+    const lista   = document.getElementById("ventas-hoy-lista");
+    const countEl = document.getElementById("ventas-hoy-count");
 
-  // Inicializacion al cargar la pagina
-  setFechaHoy();
+    countEl.textContent = `${ventasHoy.length} venta(s)`;
+
+    if (ventasHoy.length === 0) {
+      lista.innerHTML = '<div class="empty-state">Aquí aparecerán las ventas del día.</div>';
+      return;
+    }
+
+    const badgeClass = { efectivo: "badge-efectivo", nequi: "badge-nequi", daviplata: "badge-daviplata" };
+
+    lista.innerHTML = ventasHoy.map(v => `
+      <div class="venta-row">
+        <span class="venta-hora">${v.hora || "—"}</span>
+        <span class="venta-items-lista">${v.resumen || "—"}</span>
+        <span class="venta-metodo-badge ${badgeClass[v.metodo] || ""}">${v.metodo}</span>
+        <span class="venta-total">${fmt(v.total)}</span>
+      </div>
+    `).join("");
+  }
+
+  // ── Búsqueda ──
+  function filtrarProductos() {
+    const q     = document.getElementById("buscador").value.toLowerCase().trim();
+    const tiles = document.querySelectorAll(".prod-tile");
+    tiles.forEach(tile => {
+      const nombre = tile.dataset.nombreLower || "";
+      tile.style.display = nombre.includes(q) ? "" : "none";
+    });
+  }
+
+  // ── Init ──
+  renderVentasHoy();
 </script>
 {% endblock %}

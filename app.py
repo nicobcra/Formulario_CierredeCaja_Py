@@ -20,7 +20,6 @@ COL_TZ = timezone(timedelta(hours=-5))
 def hoy_colombia():
     return datetime.now(COL_TZ).date()
 
-
 # ─────────────────────────────────────────
 # APP
 # ─────────────────────────────────────────
@@ -37,14 +36,11 @@ app.config["SESSION_COOKIE_SAMESITE"]      = "None" if IS_PROD else "Lax"
 app.config["SESSION_COOKIE_SECURE"]        = IS_PROD
 
 @app.context_processor
-def inject_user_data():
-
+def inject_session_vars():
     return {
-        "rol": session.get("rol", ""),
+        "rol":            session.get("rol", ""),
         "usuario_nombre": session.get("usuario_nombre", ""),
-        "tienda": {
-            "nombre": session.get("tienda_nombre", "Mi tienda")
-        }
+        "tienda_id":      session.get("tienda_id"),
     }
 
 # ─────────────────────────────────────────
@@ -59,7 +55,6 @@ HEADERS = {
     "Content-Type":  "application/json",
     "Prefer":        "return=representation",
 }
-
 
 # ─────────────────────────────────────────
 # DECORADORES DE SEGURIDAD
@@ -242,6 +237,7 @@ def obtener_inventario(tienda_id, solo_basico=False):
             "stock_minimo":  sm,
             "precio_compra": formatear_cop(pc),
             "precio_venta":  formatear_cop(pv),
+            "precio_venta_raw": pv,
             "margen":        round(((pv - pc) / pc) * 100) if pc > 0 else 0,
             "stock_bajo":    stock <= sm,
         })
@@ -326,6 +322,8 @@ def logout():
 @app.route("/registro")
 def registro():
     return render_template("registro.html")
+
+
 
 
 @app.route("/crear-cuenta", methods=["POST"])
@@ -472,19 +470,30 @@ def inicio():
 @app.route("/ventas")
 @login_requerido
 def ventas():
+    tienda_id   = session["tienda_id"]
+    rol         = session.get("rol", "")
+    solo_basico = rol == "vendedor"
+    productos   = obtener_inventario(tienda_id, solo_basico=solo_basico)
+    return render_template("ventas.html",
+        modulo="ventas",
+        productos=productos,
+    )
+
+@login_requerido
+def ventas():
     tienda_id = session["tienda_id"]
     rol       = session.get("rol", "")
 
     # Vendedor solo ve la venta de hoy (cierre de caja)
     if rol == "vendedor":
         venta_hoy = obtener_venta_hoy(tienda_id)
-        return render_template("ventas.html",
+        return render_template("cierre.html",
             ventas=[venta_hoy] if venta_hoy else [],
             solo_hoy=True,
             modulo="ventas",
         )
 
-    return render_template("ventas.html",
+    return render_template("cierre.html",
         ventas=obtener_ventas(tienda_id),
         solo_hoy=False,
         modulo="ventas",
@@ -525,6 +534,60 @@ def inventario():
 @rol_requerido("dueno", "admin")
 def analisis():
     return render_template("analisis.html", modulo="analisis")
+
+@app.route("/registrar-venta", methods=["POST"])
+@login_requerido
+def registrar_venta():
+    try:
+        data      = request.json
+        tienda_id = session["tienda_id"]
+        metodo    = data.get("metodo", "")
+        total     = data.get("total", 0)
+        items     = data.get("items", [])
+        ahora     = datetime.now(COL_TZ)
+
+        # 1. Cabecera en ventas_productos
+        ok, res = sb_post("ventas_productos", {
+            "tienda_id":   tienda_id,
+            "metodo_pago": metodo,   # ← metodo_pago, no metodo
+            "total":       total,
+        })
+        if not ok:
+            return jsonify({"ok": False, "error": res}), 500
+
+        venta_id = res[0]["id"]
+
+        # 2. Items + descontar stock
+        inventario = sb_get("inventario", {
+            "select":    "id,stock",
+            "tienda_id": f"eq.{tienda_id}",
+            "activo":    "eq.true",
+        })
+        inv_map = {p["id"]: p for p in inventario}
+
+        for item in items:
+            sb_post("venta_items", {
+                "venta_id":       venta_id,
+                "producto_id":    item.get("producto_id"),
+                "cantidad":       item.get("cantidad"),
+                "precio_unitario": item.get("precio"),   # ← precio_unitario
+                "subtotal":       item.get("subtotal"),
+            })
+            prod = inv_map.get(item.get("producto_id"))
+            if prod:
+                nuevo = max(0, prod["stock"] - item.get("cantidad", 1))
+                sb_patch("inventario", f"id=eq.{prod['id']}", {"stock": nuevo})
+
+        resumen = ", ".join(f'{i["nombre"]} x{i["cantidad"]}' for i in items)
+        return jsonify({
+            "ok":     True,
+            "total":  total,
+            "hora":   ahora.strftime("%H:%M"),
+            "metodo": metodo,
+            "resumen": resumen,
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 # ─────────────────────────────────────────

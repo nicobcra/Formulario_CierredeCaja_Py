@@ -1,1 +1,427 @@
 {% extends "base.html" %}
+
+{% block head %}
+<style>
+  .usuarios-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .usuario-card {
+    background: var(--blanco);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--gris-100);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: slideUp 0.3s ease both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .usuario-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--naranja-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--naranja-deep);
+    font-family: var(--font-display);
+    flex-shrink: 0;
+  }
+
+  .usuario-avatar.inactivo {
+    background: var(--gris-100);
+    color: var(--gris-300);
+  }
+
+  .usuario-info { flex: 1; min-width: 0; }
+
+  .usuario-nombre {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gris-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .usuario-nombre.inactivo { color: var(--gris-300); }
+
+  .usuario-meta {
+    font-size: 12px;
+    color: var(--gris-500);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .rol-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 99px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .rol-badge.dueno   { background: #FEF3C7; color: #92400E; }
+  .rol-badge.admin   { background: #DBEAFE; color: #1E40AF; }
+  .rol-badge.vendedor { background: #DCFCE7; color: #166534; }
+  .rol-badge.inactivo { background: var(--gris-100); color: var(--gris-300); }
+
+  .usuario-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .btn-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--gris-300);
+    background: transparent;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .btn-icon:hover { border-color: #EF4444; background: #FEF2F2; }
+  .btn-icon.disabled { opacity: 0.3; pointer-events: none; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .modal-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal-sheet {
+    background: var(--blanco);
+    border-radius: var(--radius) var(--radius) 0 0;
+    width: 100%;
+    max-width: 560px;
+    padding: 0 0 32px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.visible .modal-sheet { transform: translateY(0); }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--gris-300);
+    border-radius: 99px;
+    margin: 12px auto 20px;
+  }
+
+  .modal-header {
+    padding: 0 24px 16px;
+    border-bottom: 1px solid var(--gris-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--gris-900); }
+
+  .modal-close {
+    background: var(--gris-100);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 99px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gris-500);
+  }
+
+  .modal-body { padding: 20px 24px; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .form-grid.full { grid-template-columns: 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+
+  .field label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+  }
+
+  .field input, .field select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--gris-300);
+    background: var(--blanco);
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--gris-900);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 3px var(--naranja-glow);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--gris-300);
+  }
+
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  .seccion-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gris-500);
+    margin: 20px 0 10px;
+  }
+
+  @media (max-width: 480px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-badge">Equipo de trabajo</div>
+  <h2>Usua<span>rios</span></h2>
+  <p>{{ usuarios | length }} usuario(s) en tu tienda</p>
+</div>
+
+<div class="page-body">
+
+  <button class="btn-primary full" onclick="abrirModal()" style="margin-bottom:16px;">
+    + Agregar usuario
+  </button>
+
+  <div class="usuarios-grid">
+    {% if usuarios %}
+      {% for u in usuarios %}
+      <div class="usuario-card">
+        <div class="usuario-avatar {{ 'inactivo' if not u.activo else '' }}">
+          {{ u.nombre[0] | upper }}
+        </div>
+        <div class="usuario-info">
+          <div class="usuario-nombre {{ 'inactivo' if not u.activo else '' }}">{{ u.nombre }}</div>
+          <div class="usuario-meta">
+            <span>{{ u.telefono }}</span>
+            <span>·</span>
+            <span class="rol-badge {{ 'inactivo' if not u.activo else u.rol }}">
+              {% if not u.activo %}Inactivo{% else %}{{ u.rol }}{% endif %}
+            </span>
+          </div>
+        </div>
+        <div class="usuario-actions">
+          {% if u.activo and u.id != session.get('usuario_id') %}
+          <button class="btn-icon" title="Desactivar"
+            onclick="desactivar('{{ u.id }}', '{{ u.nombre }}')">🗑️</button>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <p>Aún no hay usuarios.<br>Agrega el primero.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Modal nuevo usuario -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarOverlay(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Nuevo usuario</div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="field">
+        <label>Nombre completo</label>
+        <input type="text" id="nu-nombre" placeholder="Ej: Laura Gómez" />
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="tel" id="nu-telefono" inputmode="numeric" placeholder="3001234567" />
+        </div>
+        <div class="field">
+          <label>Rol</label>
+          <select id="nu-rol">
+            <option value="vendedor">Vendedor</option>
+            {% if rol == 'dueno' %}
+            <option value="admin">Admin</option>
+            {% endif %}
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Correo (opcional)</label>
+        <input type="email" id="nu-correo" placeholder="correo@ejemplo.com" />
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Contraseña temporal</label>
+          <input type="password" id="nu-password" placeholder="••••••" />
+        </div>
+        <div class="field">
+          <label>Confirmar</label>
+          <input type="password" id="nu-confirmar" placeholder="••••••" />
+        </div>
+      </div>
+
+      <button class="btn-primary full" onclick="crearUsuario()" id="btn-crear">
+        Crear usuario
+      </button>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function abrirModal() {
+    document.getElementById("modal-overlay").classList.add("visible");
+    document.body.style.overflow = "hidden";
+    document.getElementById("nu-nombre").focus();
+  }
+
+  function cerrarModal() {
+    document.getElementById("modal-overlay").classList.remove("visible");
+    document.body.style.overflow = "";
+    ["nu-nombre","nu-telefono","nu-correo","nu-password","nu-confirmar"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+  }
+
+  function cerrarOverlay(e) {
+    if (e.target === document.getElementById("modal-overlay")) cerrarModal();
+  }
+
+  async function crearUsuario() {
+    const nombre    = document.getElementById("nu-nombre").value.trim();
+    const telefono  = document.getElementById("nu-telefono").value.trim();
+    const correo    = document.getElementById("nu-correo").value.trim();
+    const rol       = document.getElementById("nu-rol").value;
+    const password  = document.getElementById("nu-password").value;
+    const confirmar = document.getElementById("nu-confirmar").value;
+
+    if (!nombre || !telefono || !password) {
+      mostrarToast("Nombre, teléfono y contraseña son obligatorios", "error");
+      return;
+    }
+
+    if (password !== confirmar) {
+      mostrarToast("Las contraseñas no coinciden", "error");
+      return;
+    }
+
+    const btn = document.getElementById("btn-crear");
+    btn.disabled = true;
+    btn.textContent = "Creando...";
+
+    try {
+      const res  = await fetch("/crear-usuario", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ nombre, telefono, correo, rol, password, confirmar })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        cerrarModal();
+        mostrarToast("✓ Usuario creado", "success");
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        mostrarToast("Error: " + data.error, "error");
+      }
+    } catch {
+      mostrarToast("Error de conexión", "error");
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = "Crear usuario";
+    }
+  }
+
+  async function desactivar(id, nombre) {
+    if (!confirm(`¿Desactivar a ${nombre}? Ya no podrá ingresar al sistema.`)) return;
+
+    try {
+      const res  = await fetch("/desactivar-usuario", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        mostrarToast("✓ Usuario desactivado", "success");
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        mostrarToast("Error: " + data.error, "error");
+      }
+    } catch {
+      mostrarToast("Error de conexión", "error");
+    }
+  }
+</script>
+{% endblock %}
