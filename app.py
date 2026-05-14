@@ -150,34 +150,74 @@ def obtener_pedidos(tienda_id):
 
 
 # Obtiene ventas de hoy y de los ultimos 7 dias para el dashboard de inicio
-def obtener_datos_inicio():
+# Obtiene ventas de hoy y de los ultimos 7 dias
+def obtener_datos_inicio(tienda_id):
+
     try:
+
         res = requests.get(
             f"{SUPABASE_URL}/rest/v1/ventas",
             headers=HEADERS,
             params={
                 "select": "*",
-                "tienda_id": f"eq.{session['tienda_id']}",
+                "tienda_id": f"eq.{tienda_id}",
                 "order": "fecha.desc",
                 "limit": "30"
             }
         )
+
+        if res.status_code != 200:
+            return {
+                "total_hoy": 0,
+                "nequi_hoy": 0,
+                "daviplata_hoy": 0,
+                "efectivo_hoy": 0,
+                "semana": [],
+            }
+
         rows = res.json()
+
         hoy = hoy_colombia()
 
-        # Ventas de hoy
-        venta_hoy = next((r for r in rows if str(r.get("fecha", ""))[:10] == str(hoy)), None)
+        # Venta de hoy
+        venta_hoy = next(
+            (
+                r for r in rows
+                if str(r.get("fecha", ""))[:10] == str(hoy)
+            ),
+            None
+        )
+
         total_hoy = venta_hoy.get("total", 0) if venta_hoy else 0
         nequi_hoy = venta_hoy.get("nequi", 0) if venta_hoy else 0
         daviplata_hoy = venta_hoy.get("daviplata", 0) if venta_hoy else 0
         efectivo_hoy = venta_hoy.get("efectivo", 0) if venta_hoy else 0
 
-        # Ventas de los ultimos 7 dias para la grafica
-        dias_semana = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
+        # Datos de los últimos 7 días
+        dias_semana = [
+            "Lun",
+            "Mar",
+            "Mie",
+            "Jue",
+            "Vie",
+            "Sab",
+            "Dom"
+        ]
+
         semana = []
+
         for i in range(6, -1, -1):
+
             dia = hoy - timedelta(days=i)
-            row = next((r for r in rows if str(r.get("fecha", ""))[:10] == str(dia)), None)
+
+            row = next(
+                (
+                    r for r in rows
+                    if str(r.get("fecha", ""))[:10] == str(dia)
+                ),
+                None
+            )
+
             semana.append({
                 "dia": dias_semana[dia.weekday()],
                 "fecha": str(dia),
@@ -195,7 +235,11 @@ def obtener_datos_inicio():
             "efectivo_hoy": efectivo_hoy,
             "semana": semana,
         }
-    except Exception:
+
+    except Exception as e:
+
+        print("ERROR EN INICIO:", e)
+
         return {
             "total_hoy": 0,
             "nequi_hoy": 0,
@@ -204,8 +248,6 @@ def obtener_datos_inicio():
             "semana": [],
         }
 
-
-# LOGIN
 # LOGIN
 @app.route("/", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
@@ -445,7 +487,7 @@ def inicio():
         if len(tiendas) > 0:
             tienda = tiendas[0]
 
-    datos = obtener_datos_inicio()
+    datos = obtener_datos_inicio(tienda_id)
 
     return render_template(
         "inicio.html",
