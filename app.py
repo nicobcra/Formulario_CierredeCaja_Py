@@ -458,23 +458,37 @@ def crear_cuenta():
         })
 
 # Ruta principal - pagina de inicio con resumen del dia
+# Ruta principal - pagina de inicio con resumen del dia
 @app.route("/inicio")
 def inicio():
 
     if "usuario_id" not in session:
         return redirect("/login")
 
+    tienda_id = session["tienda_id"]
+
+    # Obtener datos reales
+    datos = obtener_datos_inicio(tienda_id)
+
+    # Obtener nombre de la tienda
+    res = requests.get(
+        f"{SUPABASE_URL}/rest/v1/tiendas",
+        headers=HEADERS,
+        params={
+            "id": f"eq.{tienda_id}",
+            "select": "nombre"
+        }
+    )
+
+    tienda = res.json()[0] if res.status_code == 200 and len(res.json()) > 0 else {
+        "nombre": "Mi tienda"
+    }
+
     return render_template(
         "inicio.html",
         modulo="inicio",
-        datos={
-            "total_hoy": 0,
-            "nequi_hoy": 0,
-            "daviplata_hoy": 0,
-            "efectivo_hoy": 0,
-            "semana": []
-        },
-        tienda={},
+        datos=datos,
+        tienda=tienda,
         usuario_nombre=session.get("usuario_nombre", "")
     )
 
