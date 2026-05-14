@@ -859,17 +859,9 @@ def guardar_pedido():
                 json=item_payload
             )
 
-        # Actualizar stock del inventario
-        for item in items:
-
-            nombre = item.get(
-                "producto_nombre",
-                ""
-            ).strip().lower()
-
-            cantidad = int(
-                item.get("cantidad", 1)
-            )
+            # =========================================
+            # OBTENER INVENTARIO UNA SOLA VEZ
+            # =========================================
 
             res_inv = requests.get(
                 f"{SUPABASE_URL}/rest/v1/inventario",
@@ -883,27 +875,41 @@ def guardar_pedido():
 
             inventario = res_inv.json()
 
-            match = next(
-                (
-                    p for p in inventario
-                    if p.get("nombre", "").strip().lower() == nombre
-                ),
-                None
-            )
+            # Crear mapa rápido por nombre
+            inventario_map = {
+                p.get("nombre", "").strip().lower(): p
+                for p in inventario
+            }
 
-            if match:
+            # =========================================
+            # ACTUALIZAR STOCK
+            # =========================================
 
-                nuevo_stock = (
-                    match.get("stock", 0) + cantidad
+            for item in items:
+
+                nombre = item.get(
+                    "producto_nombre",
+                    ""
+                ).strip().lower()
+
+                cantidad = int(
+                    item.get("cantidad", 1)
                 )
 
-                requests.patch(
-                    f"{SUPABASE_URL}/rest/v1/inventario?id=eq.{match['id']}",
-                    headers=HEADERS,
-                    json={
-                        "stock": nuevo_stock
-                    }
-                )
+                producto = inventario_map.get(nombre)
+
+                if producto:
+                    nuevo_stock = (
+                            producto.get("stock", 0) + cantidad
+                    )
+
+                    requests.patch(
+                        f"{SUPABASE_URL}/rest/v1/inventario?id=eq.{producto['id']}",
+                        headers=HEADERS,
+                        json={
+                            "stock": nuevo_stock
+                        }
+                    )
 
         return jsonify({
             "ok": True,
