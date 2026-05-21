@@ -521,7 +521,7 @@
     <!-- ── Columna izquierda: productos ── -->
     <div>
       <div class="search-wrap">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon"><i data-lucide="search" style="width:16px;height:16px;"></i></span>
         <input class="search-input" type="text" id="buscador"
           placeholder="Buscar producto..."
           oninput="filtrarProductos()" />
@@ -549,7 +549,7 @@
           {% endfor %}
         {% else %}
           <div class="empty-state" style="grid-column:1/-1;">
-            <div style="font-size:40px;margin-bottom:8px;">🗃️</div>
+            <div style="margin-bottom:12px; color:var(--gris-300); display:flex; justify-content:center;"><i data-lucide="package-search" style="width:48px;height:48px;"></i></div>
             <p>No hay productos en inventario.</p>
           </div>
         {% endif %}
@@ -579,9 +579,9 @@
         <h3>Método de pago</h3>
 
         <div class="metodos-row">
-          <button class="metodo-btn" onclick="setMetodo('efectivo', this)">💵 Efectivo</button>
-          <button class="metodo-btn" onclick="setMetodo('nequi', this)">📱 Nequi</button>
-          <button class="metodo-btn" onclick="setMetodo('daviplata', this)">💜 Daviplata</button>
+          <button class="metodo-btn" onclick="setMetodo('efectivo', this)" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="banknote" style="width:16px;height:16px;"></i> Efectivo</button>
+          <button class="metodo-btn" onclick="setMetodo('nequi', this)" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="smartphone" style="width:16px;height:16px;"></i> Nequi</button>
+          <button class="metodo-btn" onclick="setMetodo('daviplata', this)" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="smartphone" style="width:16px;height:16px;"></i> Daviplata</button>
         </div>
 
         <!-- Sección efectivo: cuánto paga / vueltas -->

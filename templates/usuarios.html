@@ -267,14 +267,14 @@
         <div class="usuario-actions">
           {% if u.activo and u.id != session.get('usuario_id') %}
           <button class="btn-icon" title="Desactivar"
-            onclick="desactivar('{{ u.id }}', '{{ u.nombre }}')">🗑️</button>
+            onclick="desactivar('{{ u.id }}', '{{ u.nombre }}')"><i data-lucide="trash-2" style="width:16px;height:16px;color:var(--gris-500);"></i></button>
           {% endif %}
         </div>
       </div>
       {% endfor %}
     {% else %}
       <div class="empty-state">
-        <div class="empty-icon">👥</div>
+        <div class="empty-icon" style="display:flex;justify-content:center;margin-bottom:12px;"><i data-lucide="users" style="width:48px;height:48px;color:var(--gris-300);"></i></div>
         <p>Aún no hay usuarios.<br>Agrega el primero.</p>
       </div>
     {% endif %}

@@ -430,7 +430,7 @@
 
   <!-- Barra de busqueda -->
   <div class="search-wrap">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon"><i data-lucide="search" style="width:16px;height:16px;color:var(--gris-500);"></i></span>
     <input class="search-input" type="text" id="buscador"
       placeholder="Buscar producto..."
       oninput="filtrarProductos()" />
@@ -494,7 +494,7 @@
       {% endfor %}
     {% else %}
       <div class="empty-state">
-        <div class="empty-icon">🗃️</div>
+        <div class="empty-icon" style="display:flex;justify-content:center;margin-bottom:12px;"><i data-lucide="archive" style="width:48px;height:48px;color:var(--gris-300);"></i></div>
         <p>Aún no hay productos.<br>Agrega el primero.</p>
       </div>
     {% endif %}
@@ -754,8 +754,9 @@
         empty = document.createElement("div");
         empty.id = "empty-filtered";
         empty.className = "empty-state";
-        empty.innerHTML = '<div class="empty-icon">🔍</div><p>Sin resultados</p>';
+        empty.innerHTML = '<div class="empty-icon" style="display:flex;justify-content:center;margin-bottom:12px;"><i data-lucide="search" style="width:48px;height:48px;color:var(--gris-300);"></i></div><p>Sin resultados</p>';
         document.getElementById("productos-lista").appendChild(empty);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
       }
       empty.style.display = "block";
     } else if (empty) {

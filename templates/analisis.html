@@ -1,14 +1,169 @@
 {% extends "base.html" %}
+
+{% block head %}
+<style>
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .stat-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--gris-100);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--naranja);
+  }
+
+  .stat-card.blue::before { background: #3B82F6; }
+  .stat-card.green::before { background: #10B981; }
+
+  .stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stat-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gris-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--naranja-pale);
+    color: var(--naranja-deep);
+  }
+
+  .stat-card.blue .stat-icon { background: #EFF6FF; color: #2563EB; }
+  .stat-card.green .stat-icon { background: #ECFDF5; color: #059669; }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gris-900);
+  }
+
+  .stat-desc {
+    font-size: 12px;
+    color: var(--gris-500);
+    line-height: 1.4;
+    background: var(--gris-50);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    margin-top: 4px;
+  }
+
+  .ai-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    border-radius: var(--radius);
+    padding: 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 10px 25px rgba(49, 46, 129, 0.2);
+    margin-bottom: 24px;
+  }
+
+  .ai-banner-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ai-banner-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+
+  .ai-banner-content p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
-  <div class="page-badge">Próximamente</div>
+  <div class="page-badge">Salud de tu negocio</div>
   <h2>Aná<span>lisis</span></h2>
-  <p>Esta sección estará disponible pronto</p>
+  <p>Conoce qué tan bien le va a tu tienda fácilmente</p>
 </div>
+
 <div class="page-body">
-  <div class="card"><div class="card-body" style="text-align:center; padding:48px;">
-    <div style="font-size:48px; margin-bottom:16px;">📊</div>
-    <div style="font-size:15px; color:var(--gris-500);">Módulo en construcción</div>
-  </div></div>
+
+  <div class="ai-banner">
+    <div class="ai-banner-icon">
+      <i data-lucide="bot" style="width:32px;height:32px;color:#a5b4fc;"></i>
+    </div>
+    <div class="ai-banner-content">
+      <h3>Próximamente: Tu Asistente Inteligente</h3>
+      <p>Estamos trabajando para incorporar <strong>Inteligencia Artificial y Machine Learning</strong>. Pronto Controla podrá predecir qué productos se te van a agotar, sugerirte qué comprarle a tus proveedores y ayudarte a aumentar tus ganancias sin que tengas que ser un experto en finanzas.</p>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-title">Ingresos Brutos</div>
+        <div class="stat-icon"><i data-lucide="wallet"></i></div>
+      </div>
+      <!-- Aqui irian las variables reales, por ahora hardcodeado o cero -->
+      <div class="stat-value">$0</div>
+      <div class="stat-desc"><strong>¿Qué es?</strong> Es todo el dinero que entró a tu caja hoy, antes de pagarle a tus proveedores o cubrir otros gastos.</div>
+    </div>
+
+    <div class="stat-card green">
+      <div class="stat-header">
+        <div class="stat-title">Ganancia Neta</div>
+        <div class="stat-icon"><i data-lucide="trending-up"></i></div>
+      </div>
+      <div class="stat-value">$0</div>
+      <div class="stat-desc"><strong>¿Qué es?</strong> Es la plata que <em>realmente te queda de bolsillo</em>, luego de descontar lo que te costó comprar la mercancía.</div>
+    </div>
+
+    <div class="stat-card blue">
+      <div class="stat-header">
+        <div class="stat-title">Margen Promedio</div>
+        <div class="stat-icon"><i data-lucide="pie-chart"></i></div>
+      </div>
+      <div class="stat-value">0%</div>
+      <div class="stat-desc"><strong>¿Qué es?</strong> Es el porcentaje de ganancia que le sacas en promedio a los productos que vendes. Entre más alto, ¡mejor!</div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

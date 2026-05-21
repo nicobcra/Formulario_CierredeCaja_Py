@@ -384,10 +384,9 @@
 <!-- Cuerpo del modulo de pedidos -->
 <div class="page-body">
 
-  <!-- Tabs de navegacion entre pedidos y proveedores -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="cambiarTab('pedidos')">📦 Pedidos</button>
-    <button class="tab-btn" onclick="cambiarTab('proveedores')">🏭 Proveedores</button>
+    <button class="tab-btn active" onclick="cambiarTab('pedidos')" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="package" style="width:16px;height:16px;"></i> Pedidos</button>
+    <button class="tab-btn" onclick="cambiarTab('proveedores')" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="factory" style="width:16px;height:16px;"></i> Proveedores</button>
   </div>
 
   <!-- Panel de pedidos -->
@@ -491,15 +490,15 @@
         </div>
         <div class="pago-grid" id="pago-grid">
           <button class="pago-option" onclick="seleccionarPago('nequi', this)">
-            <span class="pago-icon">💙</span>
+            <span class="pago-icon"><i data-lucide="smartphone"></i></span>
             <span>Nequi</span>
           </button>
           <button class="pago-option" onclick="seleccionarPago('daviplata', this)">
-            <span class="pago-icon">💜</span>
+            <span class="pago-icon"><i data-lucide="smartphone"></i></span>
             <span>Daviplata</span>
           </button>
           <button class="pago-option" onclick="seleccionarPago('efectivo', this)">
-            <span class="pago-icon">💵</span>
+            <span class="pago-icon"><i data-lucide="banknote"></i></span>
             <span>Efectivo</span>
           </button>
         </div>
@@ -568,14 +567,90 @@
       <div class="pedido-card-body">
         <div class="grid-2">
           <div class="field">
-            <label>Nombre</label>
+            <label>Nombre *</label>
             <input type="text" id="prov-nombre" placeholder="Ej: Alpina" />
           </div>
           <div class="field">
-            <label>Teléfono (opcional)</label>
+            <label>Teléfono</label>
             <input type="tel" id="prov-telefono" placeholder="300 000 0000" />
           </div>
         </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Tipo de Proveedor</label>
+            <select id="prov-tipo">
+              <option value="fabricante">Fabricante</option>
+              <option value="distribuidor">Distribuidor</option>
+              <option value="mayorista">Mayorista</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Frecuencia de Visita</label>
+            <select id="prov-frecuencia">
+              <option value="semanal">Semanal</option>
+              <option value="quincenal">Quincenal</option>
+              <option value="mensual">Mensual</option>
+              <option value="bajo_demanda">Bajo Demanda</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="field grid-1" style="margin-bottom:12px;">
+          <label>Días de Visita</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;" id="prov-dias-visita">
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Lunes"> L</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Martes"> M</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Miercoles"> X</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Jueves"> J</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Viernes"> V</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Sabado"> S</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Domingo"> D</label>
+          </div>
+        </div>
+        
+        <div class="field grid-1" style="margin-bottom:12px;">
+          <label>Días de Entrega</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;" id="prov-dias-entrega">
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Lunes"> L</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Martes"> M</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Miercoles"> X</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Jueves"> J</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Viernes"> V</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Sabado"> S</label>
+            <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Domingo"> D</label>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label>Tiempo Entrega (días)</label>
+            <input type="number" id="prov-tiempo-entrega" placeholder="0" min="0" />
+          </div>
+          <div class="field">
+            <label>Horario Visita</label>
+            <input type="text" id="prov-horario" placeholder="Ej: 8am - 12pm" />
+          </div>
+        </div>
+        
+        <div class="grid-2" style="align-items:end;">
+          <div class="field">
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="prov-acepta-credito" onchange="document.getElementById('prov-dias-credito').disabled = !this.checked">
+              <span style="font-size:12px; color:var(--gris-700); text-transform:none;">Acepta Crédito</span>
+            </label>
+          </div>
+          <div class="field">
+            <label>Días de Crédito</label>
+            <input type="number" id="prov-dias-credito" placeholder="0" min="0" disabled />
+          </div>
+        </div>
+
+        <div class="field grid-1">
+          <label>Observaciones</label>
+          <textarea id="prov-obs" rows="2" placeholder="Ej: Pedir siempre caja extra..."></textarea>
+        </div>
+
         <div class="field grid-1" style="margin-bottom:16px;">
           <label>Categoría</label>
           <select id="prov-categoria">
@@ -876,6 +951,15 @@
     const nombre    = document.getElementById("prov-nombre").value.trim();
     const telefono  = document.getElementById("prov-telefono").value.trim();
     const categoria = document.getElementById("prov-categoria").value;
+    const tipo_proveedor = document.getElementById("prov-tipo").value;
+    const frecuencia_visita = document.getElementById("prov-frecuencia").value;
+    const tiempo_entrega_dias = parseInt(document.getElementById("prov-tiempo-entrega").value) || 0;
+    const horario_visita = document.getElementById("prov-horario").value.trim();
+    const acepta_credito = document.getElementById("prov-acepta-credito").checked;
+    const dias_credito = parseInt(document.getElementById("prov-dias-credito").value) || 0;
+    const observaciones = document.getElementById("prov-obs").value.trim();
+    const dias_visita = Array.from(document.querySelectorAll('#prov-dias-visita input:checked')).map(el => el.value);
+    const dias_entrega = Array.from(document.querySelectorAll('#prov-dias-entrega input:checked')).map(el => el.value);
 
     if (!nombre) { mostrarToast("Escribe el nombre del proveedor", "error"); return; }
 
@@ -887,7 +971,11 @@
       const res  = await fetch("/guardar-proveedor", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ nombre, telefono, categoria })
+        body:    JSON.stringify({ 
+          nombre, telefono, categoria, tipo_proveedor, frecuencia_visita, 
+          tiempo_entrega_dias, horario_visita, acepta_credito, dias_credito, 
+          observaciones, dias_visita, dias_entrega 
+        })
       });
       const data = await res.json();
 
@@ -895,6 +983,15 @@
         agregarProveedorLista(data.proveedor);
         document.getElementById("prov-nombre").value    = "";
         document.getElementById("prov-telefono").value  = "";
+        document.getElementById("prov-tiempo-entrega").value = "";
+        document.getElementById("prov-horario").value = "";
+        document.getElementById("prov-obs").value = "";
+        document.getElementById("prov-acepta-credito").checked = false;
+        document.getElementById("prov-dias-credito").value = "";
+        document.getElementById("prov-dias-credito").disabled = true;
+        document.querySelectorAll('#prov-dias-visita input:checked').forEach(el => el.checked = false);
+        document.querySelectorAll('#prov-dias-entrega input:checked').forEach(el => el.checked = false);
+
         mostrarToast("✓ Proveedor guardado", "success");
       } else {
         mostrarToast("Error: " + data.error, "error");

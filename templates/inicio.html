@@ -288,7 +288,7 @@
 
 <div class="page-header">
   <div class="page-badge">Hoy</div>
-  <h2>Hola, <span>{{ usuario_nombre }}</span> 👋</h2>
+  <h2>Hola, <span>{{ usuario_nombre }}</span> <i data-lucide="smile" style="width: 28px; height: 28px; display: inline-block; vertical-align: middle; color: var(--naranja);"></i></h2>
   <p>{{ tienda.nombre }} — resumen del día</p>
 </div>
 
@@ -313,15 +313,15 @@
 
         <div class="hero-breakdown">
           <div class="breakdown-item">
-            <div class="breakdown-label">💙 Nequi</div>
+            <div class="breakdown-label" style="display:flex; align-items:center; gap:4px;"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Nequi</div>
             <div class="breakdown-value" id="bd-nequi">${{ "{:,.0f}".format(datos.nequi_hoy).replace(",", ".") }}</div>
           </div>
           <div class="breakdown-item">
-            <div class="breakdown-label">❤️ Daviplata</div>
+            <div class="breakdown-label" style="display:flex; align-items:center; gap:4px;"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Daviplata</div>
             <div class="breakdown-value" id="bd-daviplata">${{ "{:,.0f}".format(datos.daviplata_hoy).replace(",", ".") }}</div>
           </div>
           <div class="breakdown-item">
-            <div class="breakdown-label">💵 Efectivo</div>
+            <div class="breakdown-label" style="display:flex; align-items:center; gap:4px;"><i data-lucide="banknote" style="width:12px;height:12px;"></i> Efectivo</div>
             <div class="breakdown-value" id="bd-efectivo">${{ "{:,.0f}".format(datos.efectivo_hoy).replace(",", ".") }}</div>
           </div>
         </div>
@@ -356,28 +356,28 @@
       <!-- Accesos rápidos -->
       <div class="quick-grid">
         <a href="/ventas" class="quick-card">
-          <div class="quick-icon naranja">💰</div>
+          <div class="quick-icon naranja"><i data-lucide="shopping-cart"></i></div>
           <div class="quick-info">
             <div class="quick-title">Ventas</div>
             <div class="quick-sub">Registrar hoy</div>
           </div>
         </a>
         <a href="/pedidos" class="quick-card">
-          <div class="quick-icon azul">📦</div>
+          <div class="quick-icon azul"><i data-lucide="truck"></i></div>
           <div class="quick-info">
             <div class="quick-title">Pedidos</div>
             <div class="quick-sub">Mercancía</div>
           </div>
         </a>
         <a href="/inventario" class="quick-card">
-          <div class="quick-icon gris">🗃️</div>
+          <div class="quick-icon gris"><i data-lucide="boxes"></i></div>
           <div class="quick-info">
             <div class="quick-title">Inventario</div>
             <div class="quick-sub">Ver productos</div>
           </div>
         </a>
         <a href="/analisis" class="quick-card">
-          <div class="quick-icon gris">📊</div>
+          <div class="quick-icon gris"><i data-lucide="bar-chart-2"></i></div>
           <div class="quick-info">
             <div class="quick-title">Análisis</div>
             <div class="quick-sub">Ver reportes</div>

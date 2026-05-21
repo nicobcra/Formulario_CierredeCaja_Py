@@ -436,6 +436,7 @@
       .toast { bottom: calc(var(--bottomnav-h) + 12px); }
     }
   </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
   {% block head %}{% endblock %}
 
 </head>
@@ -452,22 +453,22 @@
   <nav class="sidebar-nav">
 
     <a href="/inicio" class="nav-item {% if modulo == 'inicio' %}active{% endif %}">
-      <span class="nav-icon">🏠</span>
+      <span class="nav-icon"><i data-lucide="home"></i></span>
       <span class="nav-label">Inicio</span>
     </a>
 
     <a href="/ventas" class="nav-item {% if modulo == 'ventas' %}active{% endif %}">
-      <span class="nav-icon">🛒</span>
+      <span class="nav-icon"><i data-lucide="shopping-cart"></i></span>
       <span class="nav-label">Ventas</span>
     </a>
 
     <a href="/cierre" class="nav-item {% if modulo == 'cierre' %}active{% endif %}">
-      <span class="nav-icon">💰</span>
+      <span class="nav-icon"><i data-lucide="wallet"></i></span>
       <span class="nav-label">Cierre de caja</span>
     </a>
 
     <a href="/inventario" class="nav-item {% if modulo == 'inventario' %}active{% endif %}">
-      <span class="nav-icon">🗃️</span>
+      <span class="nav-icon"><i data-lucide="boxes"></i></span>
       <span class="nav-label">Inventario</span>
     </a>
 
@@ -475,17 +476,17 @@
     <div class="nav-section-label">Administración</div>
 
     <a href="/pedidos" class="nav-item {% if modulo == 'pedidos' %}active{% endif %}">
-      <span class="nav-icon">📦</span>
+      <span class="nav-icon"><i data-lucide="truck"></i></span>
       <span class="nav-label">Pedidos</span>
     </a>
 
     <a href="/analisis" class="nav-item {% if modulo == 'analisis' %}active{% endif %}">
-      <span class="nav-icon">📊</span>
+      <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
       <span class="nav-label">Análisis</span>
     </a>
 
     <a href="/usuarios" class="nav-item {% if modulo == 'usuarios' %}active{% endif %}">
-      <span class="nav-icon">👥</span>
+      <span class="nav-icon"><i data-lucide="users"></i></span>
       <span class="nav-label">Usuarios</span>
     </a>
 
@@ -515,29 +516,29 @@
 <nav class="bottom-nav">
 
   <a href="/inicio" class="bottom-nav-item {% if modulo == 'inicio' %}active{% endif %}">
-    <span class="bn-icon">🏠</span>
+    <span class="bn-icon"><i data-lucide="home"></i></span>
     <span>Inicio</span>
   </a>
 
   <a href="/inventario" class="bottom-nav-item {% if modulo == 'inventario' %}active{% endif %}">
-    <span class="bn-icon">🗃️</span>
+    <span class="bn-icon"><i data-lucide="boxes"></i></span>
     <span>Inventario</span>
   </a>
 
   {# Botón central: Ventas (POS) #}
   <a href="/ventas" class="bottom-nav-item center-btn {% if modulo == 'ventas' %}active{% endif %}">
-    <span class="bn-icon">🛒</span>
+    <span class="bn-icon"><i data-lucide="shopping-cart"></i></span>
     <span>Vender</span>
   </a>
 
   <a href="/cierre" class="bottom-nav-item {% if modulo == 'cierre' %}active{% endif %}">
-    <span class="bn-icon">💰</span>
+    <span class="bn-icon"><i data-lucide="wallet"></i></span>
     <span>Cierre</span>
   </a>
 
   {% if rol in ['dueno', 'admin'] %}
   <a href="/pedidos" class="bottom-nav-item {% if modulo == 'pedidos' %}active{% endif %}">
-    <span class="bn-icon">📦</span>
+    <span class="bn-icon"><i data-lucide="truck"></i></span>
     <span>Pedidos</span>
   </a>
   {% else %}
@@ -554,6 +555,8 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  lucide.createIcons();
+  
   function mostrarToast(msg, tipo = "success") {
     const t = document.getElementById("toast");
     t.textContent = msg;

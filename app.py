@@ -642,6 +642,15 @@ def guardar_proveedor():
             "telefono":  data.get("telefono", "").strip(),
             "categoria": data.get("categoria", "normal"),
             "activo":    True,
+            "tipo_proveedor": data.get("tipo_proveedor", "otro"),
+            "dias_visita": data.get("dias_visita", []),
+            "dias_entrega": data.get("dias_entrega", []),
+            "frecuencia_visita": data.get("frecuencia_visita", "semanal"),
+            "tiempo_entrega_dias": int(data.get("tiempo_entrega_dias") or 0),
+            "horario_visita": data.get("horario_visita", "").strip(),
+            "acepta_credito": bool(data.get("acepta_credito", False)),
+            "dias_credito": int(data.get("dias_credito") or 0),
+            "observaciones": data.get("observaciones", "").strip(),
         })
         if not ok:
             return jsonify({"ok": False, "error": res}), 500
