@@ -3,44 +3,52 @@
 
 {% block head %}
 <style>
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start;
+  /* Base del Dashboard Layout */
+  .dashboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
-  .dashboard-col-left  { display: flex; flex-direction: column; gap: 16px; }
-  .dashboard-col-right { display: flex; flex-direction: column; gap: 16px; }
+  /* Grid Principal adaptable */
+  .dashboard-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr; /* Móvil por defecto */
+  }
 
-  /* Hero card */
+  @media (min-width: 768px) {
+    .dashboard-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (min-width: 1200px) {
+    .dashboard-grid { grid-template-columns: 480px 1fr; }
+  }
+
+  .col-left { display: flex; flex-direction: column; gap: 16px; }
+  .col-right { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ================== HERO CARD ================== */
   .hero-card {
     background: linear-gradient(160deg, #d6803f 0%, #C2410C 55%, #EA580C 100%);
     border-radius: var(--radius);
-    padding: 28px 24px 24px;
+    padding: 24px;
     position: relative;
     overflow: hidden;
     animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
+    box-shadow: 0 10px 25px rgba(234, 88, 12, 0.2);
   }
 
   .hero-card::before {
-    content: '';
-    position: absolute;
-    top: -50px; right: -50px;
-    width: 200px; height: 200px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    pointer-events: none;
+    content: ''; position: absolute; top: -50px; right: -50px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); pointer-events: none;
   }
 
   .hero-card::after {
-    content: '';
-    position: absolute;
-    bottom: -40px; left: -20px;
-    width: 160px; height: 160px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    pointer-events: none;
+    content: ''; position: absolute; bottom: -40px; left: -20px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,255,255,0.04); pointer-events: none;
   }
 
   @keyframes slideUp {
@@ -49,347 +57,301 @@
   }
 
   .hero-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.55);
-    margin-bottom: 10px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(255,255,255,0.6);
+    margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
   }
 
   .hero-amount {
-    display: flex;
-    align-items: flex-start;
-    gap: 3px;
-    line-height: 1;
-    margin-bottom: 8px;
+    display: flex; align-items: flex-start; gap: 4px; line-height: 1; margin-bottom: 8px;
   }
 
   .hero-amount .peso-sign {
-    font-family: var(--font-body);
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 600;
-    color: rgba(255,255,255,0.75);
-    margin-top: 6px;
+    font-family: var(--font-body); font-size: clamp(20px, 4vw, 24px);
+    font-weight: 600; color: rgba(255,255,255,0.75); margin-top: 6px;
   }
 
   .hero-amount .peso-num {
-    font-family: var(--font-body);
-    font-size: clamp(34px, 8vw, 48px);
-    font-weight: 700;
-    color: var(--blanco);
-    letter-spacing: -0.02em;
+    font-family: var(--font-display); font-size: clamp(38px, 8vw, 52px);
+    font-weight: 700; color: var(--blanco); letter-spacing: -0.02em;
   }
 
   .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(255,255,255,0.12);
-    border-radius: 99px;
-    padding: 4px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.85);
-    margin-bottom: 20px;
-  }
-
-  .hero-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.1);
-    margin-bottom: 16px;
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,0.15); border-radius: 99px;
+    padding: 4px 12px; font-size: 11px; font-weight: 600;
+    color: rgba(255,255,255,0.9); margin-bottom: 24px; backdrop-filter: blur(4px);
   }
 
   .hero-breakdown {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    background: rgba(0,0,0,0.1); padding: 14px; border-radius: 12px;
   }
 
-  .breakdown-item { display: flex; flex-direction: column; gap: 5px; }
+  .breakdown-item { display: flex; flex-direction: column; gap: 4px; }
 
   .breakdown-label {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.45);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; color: rgba(255,255,255,0.55);
+    display: flex; align-items: center; gap: 4px;
   }
 
   .breakdown-value {
-    font-family: var(--font-body);
-    font-size: clamp(13px, 2.5vw, 16px);
-    font-weight: 700;
-    color: var(--blanco);
+    font-family: var(--font-body); font-size: clamp(14px, 3vw, 16px);
+    font-weight: 700; color: var(--blanco);
   }
 
-  /* Chart card */
-  .chart-card {
-    background: linear-gradient(160deg, #FFFFFF 0%, #FFF7ED 100%);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-card);
-    border: 1px solid rgba(249,115,22,0.08);
-    padding: 20px 20px 14px;
-    animation: slideUp 0.45s 0.08s cubic-bezier(0.22,1,0.36,1) both;
+  /* ================== INSIGHTS / ALERTAS ================== */
+  .insights-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    animation: slideUp 0.45s 0.1s cubic-bezier(0.22,1,0.36,1) both;
   }
 
-  .chart-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 2px;
+  .insight-card {
+    background: var(--blanco); border-radius: var(--radius-sm);
+    padding: 16px; border: 1px solid var(--gris-100);
+    box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 8px;
+    position: relative; overflow: hidden;
   }
 
-  .chart-title {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--gris-500);
-    margin-bottom: 4px;
+  .insight-card::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: var(--gris-300);
   }
 
-  .chart-total {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: clamp(20px, 4vw, 26px);
-    color: var(--gris-900);
-    letter-spacing: -0.02em;
+  .insight-card.warning::before { background: #EF4444; }
+  .insight-card.info::before { background: #3B82F6; }
+
+  .insight-header { display: flex; justify-content: space-between; align-items: center; }
+  .insight-icon {
+    width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    background: var(--gris-50); color: var(--gris-500);
   }
+  .insight-card.warning .insight-icon { background: #FEF2F2; color: #EF4444; }
+  .insight-card.info .insight-icon { background: #EFF6FF; color: #3B82F6; }
 
-  .chart-badge {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 99px;
-    background: var(--naranja-pale);
-    color: var(--naranja-deep);
-    white-space: nowrap;
-  }
+  .insight-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--gris-900); }
+  .insight-label { font-size: 12px; color: var(--gris-500); line-height: 1.3; }
 
-  .chart-tooltip {
-    background: var(--gris-900);
-    color: var(--blanco);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 8px;
-    position: absolute;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    white-space: nowrap;
-    z-index: 10;
-    transform: translateX(-50%);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  }
-
-  .chart-tooltip.visible { opacity: 1; }
-
-  .chart-wrap {
-    position: relative;
-    margin-top: 14px;
-    height: 160px;
-  }
-
-  .chart-wrap canvas {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  .chart-labels {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 8px;
-  }
-
-  .chart-day {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--gris-500);
-    text-align: center;
-    flex: 1;
-  }
-
-  .chart-day.hoy { color: var(--naranja); font-weight: 700; }
-
-  /* Quick grid */
+  /* ================== ACCESOS RÁPIDOS ================== */
   .quick-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
     animation: slideUp 0.45s 0.15s cubic-bezier(0.22,1,0.36,1) both;
   }
 
-  .quick-card {
-    background: var(--blanco);
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-card);
-    padding: 16px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    border: 1px solid rgba(255,255,255,0.9);
-    transition: transform 0.18s, box-shadow 0.18s;
-    cursor: pointer;
+  @media (max-width: 480px) {
+    /* En celulares muy pequeños, mejor mantener 2 columnas pero más compacto */
+    .quick-grid { gap: 8px; }
   }
 
-  .quick-card:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+  .quick-card {
+    background: var(--blanco); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card); padding: 14px;
+    display: flex; align-items: center; gap: 12px; text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.9); transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .quick-card:hover  { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
   .quick-card:active { transform: scale(0.97); }
 
   .quick-icon {
-    width: 40px; height: 40px;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-
-  .quick-icon.naranja { background: var(--naranja-pale); }
-  .quick-icon.azul    { background: #EFF6FF; }
-  .quick-icon.gris    { background: var(--gris-100); }
+  .quick-icon.naranja { background: var(--naranja-pale); color: var(--naranja-deep); }
+  .quick-icon.azul    { background: #EFF6FF; color: #2563EB; }
+  .quick-icon.gris    { background: var(--gris-100); color: var(--gris-600); }
 
   .quick-info { flex: 1; min-width: 0; }
-
-  .quick-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--gris-900);
-    margin-bottom: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
+  .quick-title { font-size: 13px; font-weight: 700; color: var(--gris-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .quick-sub { font-size: 11px; color: var(--gris-500); }
 
-  .quick-card.disabled { opacity: 0.4; pointer-events: none; }
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    .page-body      { padding: 12px; }
-    /* ✅ FIX: una sola columna en móvil */
-    .dashboard-grid { grid-template-columns: 1fr; }
-    /* ✅ FIX: ocultar columna derecha vacía en móvil */
-    .dashboard-col-right { display: none; }
-    .breakdown-value { font-size: 13px; }
+  /* ================== GRÁFICA CARD ================== */
+  .chart-card {
+    background: var(--blanco); border-radius: var(--radius);
+    box-shadow: var(--shadow-card); border: 1px solid var(--gris-100);
+    padding: 20px; animation: slideUp 0.45s 0.2s cubic-bezier(0.22,1,0.36,1) both;
+    display: flex; flex-direction: column; height: 100%; min-height: 280px;
   }
 
-  @media (min-width: 1200px) {
-    .dashboard-grid { grid-template-columns: 420px 1fr; }
+  .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .chart-title { font-size: 14px; font-weight: 700; color: var(--gris-900); }
+  .chart-sub { font-size: 12px; color: var(--gris-500); margin-top: 2px; }
+
+  .chart-wrap { position: relative; flex: 1; min-height: 180px; }
+  .chart-wrap canvas { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; }
+
+  .chart-labels { display: flex; justify-content: space-around; margin-top: 12px; border-top: 1px solid var(--gris-100); padding-top: 12px; }
+  .chart-day { font-size: 10px; font-weight: 600; color: var(--gris-500); text-align: center; flex: 1; text-transform: uppercase; }
+  .chart-day.hoy { color: var(--naranja); font-weight: 800; }
+
+  .chart-tooltip {
+    background: var(--gris-900); color: var(--blanco); font-size: 12px; font-weight: 600;
+    padding: 6px 12px; border-radius: 8px; position: absolute; pointer-events: none;
+    opacity: 0; transition: opacity 0.15s; white-space: nowrap; z-index: 10;
+    transform: translateX(-50%); box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
+  .chart-tooltip.visible { opacity: 1; }
+
+  /* ================== AI CARD ================== */
+  .ai-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    border-radius: var(--radius); padding: 20px; color: white;
+    display: flex; gap: 16px; align-items: flex-start;
+    box-shadow: 0 10px 25px rgba(49, 46, 129, 0.2);
+    animation: slideUp 0.45s 0.25s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .ai-icon { width: 48px; height: 48px; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ai-content h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .ai-content p { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4; }
+
 </style>
 {% endblock %}
 
 {% block content %}
 
 <div class="page-header">
-  <div class="page-badge">Hoy</div>
+  <div class="page-badge">Panel de Control</div>
   <h2>Hola, <span>{{ usuario_nombre }}</span> <i data-lucide="smile" style="width: 28px; height: 28px; display: inline-block; vertical-align: middle; color: var(--naranja);"></i></h2>
-  <p>{{ tienda.nombre }} — resumen del día</p>
+  <p>{{ tienda.nombre }} — Resumen del estado de tu negocio</p>
 </div>
 
 <div class="page-body">
-  <div class="dashboard-grid">
-
-    <!-- ✅ Columna izquierda: hero → gráfica → accesos rápidos (orden correcto en móvil) -->
-    <div class="dashboard-col-left">
-
-      <!-- Hero ventas hoy -->
-      <div class="hero-card">
-        <div class="hero-label">Ventas hoy</div>
-
-        <div class="hero-amount">
-          <span class="peso-sign">$</span>
-          <span class="peso-num" id="hero-num">{{ "{:,.0f}".format(datos.total_hoy).replace(",", ".") }}</span>
+  <div class="dashboard-wrapper">
+    
+    <div class="dashboard-grid">
+      
+      <!-- COLUMNA IZQUIERDA (Principal en Móvil) -->
+      <div class="col-left">
+        
+        <!-- Hero: Ventas -->
+        <div class="hero-card">
+          <div class="hero-label">
+            <span>Ventas Hoy</span>
+            <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
+          </div>
+          
+          <div class="hero-amount">
+            <span class="peso-sign">$</span>
+            <span class="peso-num" id="hero-num">{{ "{:,.0f}".format(datos.total_hoy).replace(",", ".") }}</span>
+          </div>
+          
+          <div class="hero-badge">↑ Actualizado en tiempo real</div>
+          
+          <div class="hero-breakdown">
+            <div class="breakdown-item">
+              <div class="breakdown-label"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Nequi</div>
+              <div class="breakdown-value" id="bd-nequi">${{ "{:,.0f}".format(datos.nequi_hoy).replace(",", ".") }}</div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-label"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Daviplata</div>
+              <div class="breakdown-value" id="bd-daviplata">${{ "{:,.0f}".format(datos.daviplata_hoy).replace(",", ".") }}</div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-label"><i data-lucide="banknote" style="width:12px;height:12px;"></i> Efectivo</div>
+              <div class="breakdown-value" id="bd-efectivo">${{ "{:,.0f}".format(datos.efectivo_hoy).replace(",", ".") }}</div>
+            </div>
+          </div>
         </div>
 
-        <div class="hero-badge">↑ registro del día</div>
-
-        <div class="hero-divider"></div>
-
-        <div class="hero-breakdown">
-          <div class="breakdown-item">
-            <div class="breakdown-label" style="display:flex; align-items:center; gap:4px;"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Nequi</div>
-            <div class="breakdown-value" id="bd-nequi">${{ "{:,.0f}".format(datos.nequi_hoy).replace(",", ".") }}</div>
+        <!-- Alertas de Inventario -->
+        <div class="insights-grid">
+          <div class="insight-card warning">
+            <div class="insight-header">
+              <div class="insight-icon"><i data-lucide="alert-triangle" style="width:18px;height:18px;"></i></div>
+            </div>
+            <div>
+              <div class="insight-value">{{ datos.stock_bajo }}</div>
+              <div class="insight-label">Productos con <br>bajo stock</div>
+            </div>
           </div>
-          <div class="breakdown-item">
-            <div class="breakdown-label" style="display:flex; align-items:center; gap:4px;"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Daviplata</div>
-            <div class="breakdown-value" id="bd-daviplata">${{ "{:,.0f}".format(datos.daviplata_hoy).replace(",", ".") }}</div>
-          </div>
-          <div class="breakdown-item">
-            <div class="breakdown-label" style="display:flex; align-items:center; gap:4px;"><i data-lucide="banknote" style="width:12px;height:12px;"></i> Efectivo</div>
-            <div class="breakdown-value" id="bd-efectivo">${{ "{:,.0f}".format(datos.efectivo_hoy).replace(",", ".") }}</div>
+          <div class="insight-card info">
+            <div class="insight-header">
+              <div class="insight-icon"><i data-lucide="package" style="width:18px;height:18px;"></i></div>
+            </div>
+            <div>
+              <div class="insight-value">{{ datos.total_productos }}</div>
+              <div class="insight-label">Productos en <br>inventario total</div>
+            </div>
           </div>
         </div>
+
+        <!-- Accesos rápidos -->
+        <div class="quick-grid">
+          <a href="/ventas" class="quick-card">
+            <div class="quick-icon naranja"><i data-lucide="shopping-cart"></i></div>
+            <div class="quick-info">
+              <div class="quick-title">Ventas</div>
+              <div class="quick-sub">Registrar</div>
+            </div>
+          </a>
+          <a href="/pedidos" class="quick-card">
+            <div class="quick-icon azul"><i data-lucide="truck"></i></div>
+            <div class="quick-info">
+              <div class="quick-title">Pedidos</div>
+              <div class="quick-sub">Mercancía</div>
+            </div>
+          </a>
+          <a href="/inventario" class="quick-card">
+            <div class="quick-icon gris"><i data-lucide="boxes"></i></div>
+            <div class="quick-info">
+              <div class="quick-title">Inventario</div>
+              <div class="quick-sub">Consultar</div>
+            </div>
+          </a>
+          <a href="/analisis" class="quick-card">
+            <div class="quick-icon gris"><i data-lucide="bar-chart-2"></i></div>
+            <div class="quick-info">
+              <div class="quick-title">Análisis</div>
+              <div class="quick-sub">Finanzas</div>
+            </div>
+          </a>
+        </div>
+
       </div>
 
-      <!-- ✅ Gráfica semanal aquí (entre hero y accesos rápidos) -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div>
-            <div class="chart-title">Ventas última semana</div>
-            <div class="chart-total" id="chart-total-semana">
+      <!-- COLUMNA DERECHA (Secundaria en Móvil, Lateral en PC) -->
+      <div class="col-right">
+
+        <!-- Gráfica Semanal -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Comportamiento Semanal</div>
+              <div class="chart-sub">Ventas de los últimos 7 días</div>
+            </div>
+            <div style="font-family:var(--font-display); font-weight:700; font-size:18px; color:var(--naranja-deep);">
               ${{ "{:,.0f}".format(datos.semana | sum(attribute='total')).replace(",", ".") }}
             </div>
           </div>
-          <div class="chart-badge" id="chart-badge-label">semana</div>
+
+          <div class="chart-wrap">
+            <div class="chart-tooltip" id="chart-tooltip"></div>
+            <canvas id="chart-canvas"></canvas>
+          </div>
+
+          <div class="chart-labels">
+            {% for d in datos.semana %}
+            <div class="chart-day {% if d.es_hoy %}hoy{% endif %}">
+              {{ "HOY" if d.es_hoy else d.dia }}
+            </div>
+            {% endfor %}
+          </div>
         </div>
 
-        <div class="chart-wrap">
-          <div class="chart-tooltip" id="chart-tooltip"></div>
-          <canvas id="chart-canvas"></canvas>
+        <!-- Banner de IA -->
+        <div class="ai-card">
+          <div class="ai-icon"><i data-lucide="sparkles" style="width:24px;height:24px;color:#a5b4fc;"></i></div>
+          <div class="ai-content">
+            <h3>Preparando la IA para ti</h3>
+            <p>Con los datos que registras a diario, pronto implementaremos sugerencias automatizadas que te dirán qué productos comprar antes de que se agoten para no perder ventas.</p>
+          </div>
         </div>
 
-        <div class="chart-labels">
-          {% for d in datos.semana %}
-          <div class="chart-day {% if d.es_hoy %}hoy{% endif %}">
-            {{ "HOY" if d.es_hoy else d.dia }}
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- Accesos rápidos -->
-      <div class="quick-grid">
-        <a href="/ventas" class="quick-card">
-          <div class="quick-icon naranja"><i data-lucide="shopping-cart"></i></div>
-          <div class="quick-info">
-            <div class="quick-title">Ventas</div>
-            <div class="quick-sub">Registrar hoy</div>
-          </div>
-        </a>
-        <a href="/pedidos" class="quick-card">
-          <div class="quick-icon azul"><i data-lucide="truck"></i></div>
-          <div class="quick-info">
-            <div class="quick-title">Pedidos</div>
-            <div class="quick-sub">Mercancía</div>
-          </div>
-        </a>
-        <a href="/inventario" class="quick-card">
-          <div class="quick-icon gris"><i data-lucide="boxes"></i></div>
-          <div class="quick-info">
-            <div class="quick-title">Inventario</div>
-            <div class="quick-sub">Ver productos</div>
-          </div>
-        </a>
-        <a href="/analisis" class="quick-card">
-          <div class="quick-icon gris"><i data-lucide="bar-chart-2"></i></div>
-          <div class="quick-info">
-            <div class="quick-title">Análisis</div>
-            <div class="quick-sub">Ver reportes</div>
-          </div>
-        </a>
       </div>
 
     </div>
-
-    <!-- Columna derecha (desktop): vacía por ahora, para contenido futuro -->
-    <div class="dashboard-col-right"></div>
-
   </div>
 </div>
 
@@ -404,36 +366,27 @@
   const daviplataHoy = {{ datos.daviplata_hoy }};
   const efectivoHoy  = {{ datos.efectivo_hoy }};
 
-  // Formatea numero a pesos colombianos
-  function fmt(n) {
-    return "$" + Number(n).toLocaleString("es-CO");
-  }
+  function fmt(n) { return "$" + Number(n).toLocaleString("es-CO"); }
 
-  // Restaura el hero con los datos de hoy
   function restaurarHoy() {
-    document.getElementById("hero-num").textContent =
-      Number(totalHoy).toLocaleString("es-CO");
+    document.getElementById("hero-num").textContent = Number(totalHoy).toLocaleString("es-CO");
     document.getElementById("bd-nequi").textContent     = fmt(nequiHoy);
     document.getElementById("bd-daviplata").textContent = fmt(daviplataHoy);
     document.getElementById("bd-efectivo").textContent  = fmt(efectivoHoy);
-    document.querySelector(".hero-label").textContent   = "Ventas hoy";
-    document.querySelector(".hero-badge").textContent   = "↑ registro del día";
+    document.querySelector(".hero-label span").textContent = "Ventas Hoy";
   }
 
-  // Actualiza el hero con los datos del dia seleccionado en la grafica
   function actualizarHero(d) {
-    document.getElementById("hero-num").textContent =
-      Number(d.total).toLocaleString("es-CO");
+    document.getElementById("hero-num").textContent = Number(d.total).toLocaleString("es-CO");
     document.getElementById("bd-nequi").textContent     = fmt(d.nequi     || 0);
     document.getElementById("bd-daviplata").textContent = fmt(d.daviplata  || 0);
     document.getElementById("bd-efectivo").textContent  = fmt(d.efectivo   || 0);
-    document.querySelector(".hero-label").textContent   = d.es_hoy ? "Ventas hoy" : `Ventas del ${d.fecha}`;
-    document.querySelector(".hero-badge").textContent   = d.total > 0 ? fmt(d.total) : "Sin venta";
+    document.querySelector(".hero-label span").textContent = d.es_hoy ? "Ventas Hoy" : `Ventas: ${d.fecha}`;
   }
 
-  // Dibuja la grafica de barras con pixeles nitidos usando devicePixelRatio
   function dibujarGrafica() {
     const canvas  = document.getElementById("chart-canvas");
+    if(!canvas) return;
     const wrap    = canvas.parentElement;
     const tooltip = document.getElementById("chart-tooltip");
     const dpr     = window.devicePixelRatio || 1;
@@ -441,7 +394,6 @@
     const cssW = wrap.clientWidth;
     const cssH = wrap.clientHeight;
 
-    // Ajuste de resolucion para pantallas retina - evita barras borrosas
     canvas.width  = cssW * dpr;
     canvas.height = cssH * dpr;
     canvas.style.width  = cssW + "px";
@@ -450,38 +402,30 @@
     const ctx = canvas.getContext("2d");
     ctx.scale(dpr, dpr);
 
-    const W      = cssW;
-    const H      = cssH;
-    const n      = dataSemana.length;
-    const padX   = 8;
-    const padTop = 16;
-    const padBot = 6;
-    const gap    = 6;
-    const barW   = (W - padX * 2 - gap * (n - 1)) / n;
+    const W = cssW, H = cssH, n = dataSemana.length;
+    const padX = 8, padTop = 16, padBot = 6, gap = 8;
+    const barW = (W - padX * 2 - gap * (n - 1)) / n;
     const maxVal = Math.max(...dataSemana.map(d => d.total), 1);
 
     ctx.clearRect(0, 0, W, H);
-
     const barRects = [];
-    let   barActivo = null;
 
     function dibujarBarras(idxActivo) {
       ctx.clearRect(0, 0, W, H);
       dataSemana.forEach((d, i) => {
-        const x      = padX + i * (barW + gap);
-        const ratio  = d.total / maxVal;
-        const barH   = Math.max((H - padTop - padBot) * ratio, d.total > 0 ? 6 : 2);
-        const y      = H - padBot - barH;
-        const r      = Math.min(5, barW / 2);
+        const x = padX + i * (barW + gap);
+        const ratio = d.total / maxVal;
+        const barH = Math.max((H - padTop - padBot) * ratio, d.total > 0 ? 6 : 2);
+        const y = H - padBot - barH;
+        const r = Math.min(6, barW / 2);
 
-        // Naranja fuerte para hoy, naranja palido para el resto, mas brillante si esta activo
+        // Estilos de las barras
         if (d.es_hoy) {
-          ctx.fillStyle = (idxActivo === i) ? "#EA580C" : "#F97316";
+          ctx.fillStyle = (idxActivo === i) ? "#C2410C" : "#EA580C";
         } else {
-          ctx.fillStyle = (idxActivo === i) ? "#F97316" : "#FDBA74";
+          ctx.fillStyle = (idxActivo === i) ? "#F97316" : "#FED7AA";
         }
 
-        // Barra con esquinas redondeadas arriba
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.lineTo(x + barW - r, y);
@@ -493,9 +437,7 @@
         ctx.fill();
 
         if (barRects[i]) {
-          barRects[i].y = y - 4;
-          barRects[i].h = barH + 4;
-          barRects[i].ty = y;
+          barRects[i].y = y - 4; barRects[i].h = barH + 4; barRects[i].ty = y;
         } else {
           barRects.push({ x, y: y - 4, w: barW, h: barH + 4, data: d, cx: x + barW / 2, ty: y });
         }
@@ -506,18 +448,16 @@
 
     function interactuar(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
-      const mx   = clientX - rect.left;
-      const idx  = barRects.findIndex(b => mx >= b.x && mx <= b.x + b.w);
+      const mx = clientX - rect.left;
+      const idx = barRects.findIndex(b => mx >= b.x && mx <= b.x + b.w);
 
       if (idx >= 0) {
         const b = barRects[idx];
         dibujarBarras(idx);
-
         tooltip.textContent = b.data.total > 0 ? fmt(b.data.total) : "Sin venta";
         tooltip.style.left  = b.cx + "px";
         tooltip.style.top   = (b.ty - 34) + "px";
         tooltip.classList.add("visible");
-
         actualizarHero(b.data);
       } else {
         dibujarBarras(null);
@@ -526,8 +466,7 @@
       }
     }
 
-    canvas.addEventListener("click",      e => interactuar(e.clientX, e.clientY));
-    canvas.addEventListener("mousemove",  e => interactuar(e.clientX, e.clientY));
+    canvas.addEventListener("mousemove", e => interactuar(e.clientX, e.clientY));
     canvas.addEventListener("mouseleave", () => {
       dibujarBarras(null);
       tooltip.classList.remove("visible");
