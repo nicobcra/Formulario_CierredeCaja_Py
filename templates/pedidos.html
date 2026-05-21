@@ -597,7 +597,7 @@
         </div>
         
         <div class="field grid-1" style="margin-bottom:12px;">
-          <label>Días de Visita (Cuando toman el pedido) <span style="font-weight:normal;color:var(--gris-400);font-size:10px;text-transform:none;">Ej: Lunes</span></label>
+          <label>Días de Visita</label>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;" id="prov-dias-visita">
             <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Lunes"> L</label>
             <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Martes"> M</label>
@@ -610,7 +610,7 @@
         </div>
         
         <div class="field grid-1" style="margin-bottom:12px;">
-          <label>Días de Entrega (Cuando llega la mercancía) <span style="font-weight:normal;color:var(--gris-400);font-size:10px;text-transform:none;">Ej: Martes</span></label>
+          <label>Días de Entrega</label>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;" id="prov-dias-entrega">
             <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Lunes"> L</label>
             <label style="font-weight:normal; font-size:12px; color:var(--gris-700);"><input type="checkbox" value="Martes"> M</label>
@@ -635,16 +635,10 @@
         
         <div class="grid-2" style="align-items:end;">
           <div class="field">
-            <label>¿Acepta Crédito?</label>
-            <div style="display:flex; gap:10px; margin-top:4px;">
-              <label style="flex:1; border:1px solid var(--gris-200); border-radius:8px; padding:10px; text-align:center; cursor:pointer; background:var(--blanco); font-size:13px; font-weight:600;">
-                <input type="radio" name="prov_credito" value="si" style="display:none;" onchange="toggleCredito()"> Sí
-              </label>
-              <label style="flex:1; border:1px solid var(--gris-200); border-radius:8px; padding:10px; text-align:center; cursor:pointer; background:var(--blanco); font-size:13px; font-weight:600;">
-                <input type="radio" name="prov_credito" value="no" style="display:none;" onchange="toggleCredito()" checked> No
-              </label>
-            </div>
-            <input type="hidden" id="prov-acepta-credito" value="false">
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="prov-acepta-credito" onchange="document.getElementById('prov-dias-credito').disabled = !this.checked">
+              <span style="font-size:12px; color:var(--gris-700); text-transform:none;">Acepta Crédito</span>
+            </label>
           </div>
           <div class="field">
             <label>Días de Crédito</label>
@@ -660,16 +654,8 @@
         <div class="field grid-1" style="margin-bottom:16px;">
           <label>Categoría</label>
           <select id="prov-categoria">
-            <option value="Bebidas y Refrescos">Bebidas y Refrescos</option>
-            <option value="Lácteos y Huevos">Lácteos y Huevos</option>
-            <option value="Aseo y Cuidado Personal">Aseo y Cuidado Personal</option>
-            <option value="Snacks y Dulcería">Snacks y Dulcería</option>
-            <option value="Licores y Cervezas">Licores y Cervezas</option>
-            <option value="Panadería y Arepas">Panadería y Arepas</option>
-            <option value="Carnes y Embutidos">Carnes y Embutidos</option>
-            <option value="Frutas y Verduras">Frutas y Verduras</option>
-            <option value="Granos y Abarrotes">Granos y Abarrotes</option>
-            <option value="Otro">Otro</option>
+            <option value="normal">Normal</option>
+            <option value="cerveza">Cerveza</option>
           </select>
         </div>
         <button class="btn-primary full" onclick="guardarProveedor()">
@@ -757,28 +743,6 @@
       .forEach(id => document.getElementById(id).value = "");
     document.getElementById("item-iva").value = "19";
   }
-  
-  function toggleCredito() {
-    const isSi = document.querySelector('input[name="prov_credito"]:checked').value === "si";
-    document.getElementById('prov-acepta-credito').value = isSi ? "true" : "false";
-    document.getElementById('prov-dias-credito').disabled = !isSi;
-    if(!isSi) document.getElementById('prov-dias-credito').value = "";
-    
-    document.querySelectorAll('input[name="prov_credito"]').forEach(radio => {
-      const label = radio.parentElement;
-      if(radio.checked) {
-        label.style.borderColor = "var(--naranja)";
-        label.style.background = "var(--naranja-pale)";
-        label.style.color = "var(--naranja-deep)";
-      } else {
-        label.style.borderColor = "var(--gris-200)";
-        label.style.background = "var(--blanco)";
-        label.style.color = "var(--gris-900)";
-      }
-    });
-  }
-  // Initialize styles for the radio buttons
-  document.addEventListener('DOMContentLoaded', toggleCredito);
 
   // Calcula el precio final con IVA en tiempo real
   function calcularPrecioFinal() {
@@ -991,7 +955,7 @@
     const frecuencia_visita = document.getElementById("prov-frecuencia").value;
     const tiempo_entrega_dias = parseInt(document.getElementById("prov-tiempo-entrega").value) || 0;
     const horario_visita = document.getElementById("prov-horario").value.trim();
-    const acepta_credito = document.getElementById("prov-acepta-credito").value === "true";
+    const acepta_credito = document.getElementById("prov-acepta-credito").checked;
     const dias_credito = parseInt(document.getElementById("prov-dias-credito").value) || 0;
     const observaciones = document.getElementById("prov-obs").value.trim();
     const dias_visita = Array.from(document.querySelectorAll('#prov-dias-visita input:checked')).map(el => el.value);
@@ -1022,12 +986,9 @@
         document.getElementById("prov-tiempo-entrega").value = "";
         document.getElementById("prov-horario").value = "";
         document.getElementById("prov-obs").value = "";
-        
-        // Reset radio buttons
-        const radioNo = document.querySelector('input[name="prov_credito"][value="no"]');
-        if(radioNo) radioNo.checked = true;
-        toggleCredito();
-
+        document.getElementById("prov-acepta-credito").checked = false;
+        document.getElementById("prov-dias-credito").value = "";
+        document.getElementById("prov-dias-credito").disabled = true;
         document.querySelectorAll('#prov-dias-visita input:checked').forEach(el => el.checked = false);
         document.querySelectorAll('#prov-dias-entrega input:checked').forEach(el => el.checked = false);
 

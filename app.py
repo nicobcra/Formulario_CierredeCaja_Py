@@ -243,9 +243,8 @@ def obtener_inventario(tienda_id, solo_basico=False):
 
 
 def obtener_datos_inicio(tienda_id):
-    VACIO = {"total_hoy": 0, "nequi_hoy": 0, "daviplata_hoy": 0, "efectivo_hoy": 0, "semana": [], "stock_bajo": 0, "total_productos": 0}
+    VACIO = {"total_hoy": 0, "nequi_hoy": 0, "daviplata_hoy": 0, "efectivo_hoy": 0, "semana": []}
     try:
-        # Ventas
         rows = sb_get("ventas", {
             "select":    "*",
             "tienda_id": f"eq.{tienda_id}",
@@ -268,25 +267,12 @@ def obtener_datos_inicio(tienda_id):
                 "efectivo":  r.get("efectivo", 0) if r else 0,
                 "es_hoy":    dia == hoy,
             })
-            
-        # Inventario (Insights para el dashboard)
-        inventario = sb_get("inventario", {
-            "select":    "id,stock,stock_minimo",
-            "tienda_id": f"eq.{tienda_id}",
-            "activo":    "eq.true"
-        })
-        
-        stock_bajo = sum(1 for p in inventario if (p.get("stock") or 0) <= p.get("stock_minimo", 5))
-        total_productos = len(inventario)
-
         return {
             "total_hoy":     venta_hoy.get("total", 0) if venta_hoy else 0,
             "nequi_hoy":     venta_hoy.get("nequi", 0) if venta_hoy else 0,
             "daviplata_hoy": venta_hoy.get("daviplata", 0) if venta_hoy else 0,
             "efectivo_hoy":  venta_hoy.get("efectivo", 0) if venta_hoy else 0,
             "semana":        semana,
-            "stock_bajo":    stock_bajo,
-            "total_productos": total_productos,
         }
     except Exception as e:
         print("ERROR EN INICIO:", e)
